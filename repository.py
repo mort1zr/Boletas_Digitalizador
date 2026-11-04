@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterator
 
-from app_config import DATABASE_PATH, IMAGES_DIR, ensure_directories
+import app_config
 
 
 class RepositoryError(RuntimeError):
@@ -21,9 +21,10 @@ class DuplicateSubmission(RepositoryError):
 
 
 class ReceiptRepository:
-    def __init__(self, database_path: Path = DATABASE_PATH, images_dir: Path = IMAGES_DIR) -> None:
-        self.database_path = Path(database_path)
-        self.images_dir = Path(images_dir)
+    def __init__(self, database_path: Path | None = None, images_dir: Path | None = None) -> None:
+        # Los valores por defecto se leen al construir, no al importar el módulo.
+        self.database_path = Path(database_path if database_path is not None else app_config.DATABASE_PATH)
+        self.images_dir = Path(images_dir if images_dir is not None else app_config.IMAGES_DIR)
         self.database_path.parent.mkdir(parents=True, exist_ok=True)
         self.images_dir.mkdir(parents=True, exist_ok=True)
         self.init_db()
@@ -67,7 +68,12 @@ class ReceiptRepository:
             connection.execute("CREATE INDEX IF NOT EXISTS idx_receipts_merchant ON receipts(merchant COLLATE NOCASE)")
 
     def persist_images(self, source_id: str, original_bytes: bytes, processed_png: bytes, original_extension: str) -> tuple[str, str]:
-        """Escribe ambas evidencias usando nombres generados por la aplicación."""
+        """Escribe ambas evidencias usando nombres generados por la aplicación.
+
+        Devuelve rutas relativas a la carpeta de imágenes para que la base de
+        datos siga siendo válida si se mueve la carpeta de datos (o se monta en
+        otra ruta dentro de un contenedor).
+        """
         safe_id = re_safe_id(source_id)
         extension = original_extension.lower().lstrip(".")
         if extension not in {"jpg", "jpeg", "png"}:
@@ -80,7 +86,25 @@ class ReceiptRepository:
         except Exception:
             original_path.unlink(missing_ok=True)
             raise
-        return str(original_path.resolve()), str(processed_path.resolve())
+        return original_path.name, processed_path.name
+
+    def resolve_image_path(self, stored: str | None) -> Path | None:
+        """Convierte la ruta guardada en una ruta utilizable.
+
+        Acepta el formato actual (nombre relativo a ``images_dir``) y el formato
+        heredado (ruta absoluta). Las rutas relativas que intenten salir de la
+        carpeta de imágenes se rechazan.
+        """
+        if not stored:
+            return None
+        candidate = Path(stored)
+        if candidate.is_absolute():
+            return candidate
+        images_root = self.images_dir.resolve()
+        resolved = (images_root / candidate).resolve()
+        if not resolved.is_relative_to(images_root):
+            return None
+        return resolved
 
     @staticmethod
     def _atomic_write(path: Path, payload: bytes) -> None:
@@ -97,9 +121,9 @@ class ReceiptRepository:
             if not value:
                 continue
             try:
-                path = Path(value).resolve()
+                path = self.resolve_image_path(value)
                 # Solo eliminar ficheros contenidos en la carpeta de imágenes configurada.
-                if path.is_relative_to(self.images_dir.resolve()):
+                if path is not None and path.resolve().is_relative_to(self.images_dir.resolve()):
                     path.unlink(missing_ok=True)
             except (OSError, ValueError):
                 continue
@@ -135,6 +159,11 @@ class ReceiptRepository:
                 raise RepositoryError("No se pudo insertar el registro por una restricción de base de datos.")
         except sqlite3.Error as exc:
             raise RepositoryError(f"SQLite no pudo guardar el registro: {exc}") from exc
+
+    def find_by_source_id(self, source_id: str) -> int | None:
+        with self._connect() as connection:
+            row = connection.execute("SELECT id FROM receipts WHERE source_id = ?", (source_id,)).fetchone()
+        return int(row["id"]) if row else None
 
     def list_receipts(
         self,

@@ -1,31 +1,32 @@
 """Interfaz Streamlit: autenticación, digitalización, consulta y evidencia."""
 from __future__ import annotations
 
-import csv
 import hashlib
-import io
-import json
-import re
 import uuid
-from datetime import date, datetime
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
-from pathlib import Path
+from datetime import date
 from typing import Any
 
 import cv2
 import numpy as np
 import streamlit as st
 
-from app_config import MAX_UPLOAD_BYTES, USERS_PATH, ensure_directories
+import app_config
 from auth_service import load_user, verify_login
 from ocr_service import process_receipt
-from repository import ReceiptRepository, RepositoryError
+from receipt_service import csv_bytes, format_total, save_reviewed_receipt, validate_review
+from repository import ReceiptRepository
 
 
 @st.cache_resource
-def get_repository() -> ReceiptRepository:
-    ensure_directories()
-    return ReceiptRepository()
+def get_repository(database_path: str, images_dir: str) -> ReceiptRepository:
+    # Las rutas forman parte de la clave de caché: si cambia la carpeta de datos,
+    # se crea un repositorio nuevo en lugar de reutilizar uno apuntando a otra ruta.
+    app_config.ensure_directories()
+    return ReceiptRepository(database_path, images_dir)
+
+
+def _repository() -> ReceiptRepository:
+    return get_repository(str(app_config.DATABASE_PATH), str(app_config.IMAGES_DIR))
 
 
 def _initialise_state() -> None:
@@ -80,49 +81,6 @@ def _login_screen() -> None:
             st.error("No se pudo iniciar sesión. Comprueba las credenciales.")
 
 
-def _money_from_input(raw: str) -> tuple[int | None, str | None]:
-    cleaned = raw.strip().replace("S/", "").replace("s/", "").replace("$", "").replace(" ", "")
-    if not cleaned:
-        return None, "Ingresa el total de la boleta."
-    if "," in cleaned and "." in cleaned:
-        if cleaned.rfind(",") > cleaned.rfind("."):
-            cleaned = cleaned.replace(".", "").replace(",", ".")
-        else:
-            cleaned = cleaned.replace(",", "")
-    elif "," in cleaned:
-        pieces = cleaned.split(",")
-        if len(pieces) == 2 and len(pieces[1]) in (1, 2):
-            cleaned = pieces[0] + "." + pieces[1]
-        else:
-            cleaned = "".join(pieces)
-    elif cleaned.count(".") > 1:
-        pieces = cleaned.split(".")
-        if len(pieces[-1]) in (1, 2):
-            cleaned = "".join(pieces[:-1]) + "." + pieces[-1]
-        else:
-            cleaned = "".join(pieces)
-    elif "." in cleaned:
-        pieces = cleaned.split(".")
-        # La moneda admite como máximo dos decimales; tres dígitos suelen ser miles.
-        if len(pieces) == 2 and len(pieces[1]) == 3:
-            cleaned = "".join(pieces)
-    try:
-        number = Decimal(cleaned).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-    except (InvalidOperation, ValueError):
-        return None, "El total debe ser un número válido, por ejemplo 45.90."
-    if not number.is_finite() or number <= 0:
-        return None, "El total debe ser mayor que cero."
-    return int(number * 100), None
-
-
-def _date_from_input(raw: str) -> tuple[str | None, str | None]:
-    try:
-        parsed = date.fromisoformat(raw.strip())
-    except (ValueError, TypeError):
-        return None, "La fecha debe ser válida y usar el formato AAAA-MM-DD."
-    return parsed.isoformat(), None
-
-
 def _source_id_for_upload(upload_hash: str) -> str:
     if st.session_state.get("active_upload_hash") != upload_hash or not st.session_state.get("active_source_id"):
         st.session_state["active_upload_hash"] = upload_hash
@@ -147,7 +105,7 @@ def _render_upload_tab(repository: ReceiptRepository) -> None:
         return
 
     image_bytes = uploaded.getvalue()
-    if len(image_bytes) > MAX_UPLOAD_BYTES:
+    if len(image_bytes) > app_config.MAX_UPLOAD_BYTES:
         st.error("El archivo supera el límite de 10 MB. Elige una imagen más pequeña.")
         return
     if not image_bytes:
@@ -227,82 +185,48 @@ def _render_upload_tab(repository: ReceiptRepository) -> None:
         )
         save_clicked = st.form_submit_button("Guardar registro confirmado", type="primary", width="stretch")
     if save_clicked:
-        validation_errors: list[str] = []
-        normal_date, date_error = _date_from_input(date_value)
-        if date_error:
-            validation_errors.append(date_error)
-        normal_merchant = merchant_value.strip()
-        if not normal_merchant:
-            validation_errors.append("El nombre del comercio no puede estar vacío.")
-        total_cents, total_error = _money_from_input(total_value)
-        if total_error:
-            validation_errors.append(total_error)
-        if not confirm:
-            validation_errors.append("Marca la confirmación explícita antes de guardar.")
-        if validation_errors:
+        reviewed, validation_errors = validate_review(date_value, merchant_value, total_value, confirm)
+        if reviewed is None:
             for message in validation_errors:
                 st.error(message)
             return
-
         if st.session_state.get("last_saved_source_id") == source_id:
             st.info("Esta imagen ya se guardó desde esta sesión; no se insertó otra fila.")
             return
-        original_extension = Path(uploaded.name).suffix.lower().lstrip(".") or "jpg"
-        image_paths: tuple[str, str] | None = None
         try:
-            image_paths = repository.persist_images(source_id, image_bytes, processed_png, original_extension)
-            proposed_total, _ = _money_from_input(fields.get("total", ""))
-            receipt_record = {
-                "receipt_date": normal_date,
-                "merchant": normal_merchant,
-                "total_cents": total_cents,
-                "image_path": image_paths[0],
-                "processed_image_path": image_paths[1],
-                "original_ocr_text": result.get("raw_text", ""),
-                "proposed_date": fields.get("receipt_date", ""),
-                "proposed_merchant": fields.get("merchant", ""),
-                "proposed_total_cents": proposed_total,
-                "receipt_format": result.get("format", format_label),
-                "source_id": source_id,
-                "created_at": datetime.now().astimezone().isoformat(timespec="seconds"),
-            }
-            receipt_id, inserted = repository.save_receipt(receipt_record)
-            if not inserted:
-                repository.remove_images(*image_paths)
-                st.session_state["last_saved_source_id"] = source_id
-                st.success(f"La acción ya estaba registrada. ID: {receipt_id}; no se creó un duplicado.")
-            else:
-                st.session_state["last_saved_source_id"] = source_id
-                st.session_state["selected_receipt_id"] = receipt_id
-                st.success(f"Registro guardado correctamente. ID: {receipt_id}.")
-                st.info("La extracción original y los valores confirmados quedaron almacenados por separado para revisar la evidencia.")
+            outcome = save_reviewed_receipt(
+                repository,
+                source_id=source_id,
+                image_bytes=image_bytes,
+                original_filename=uploaded.name,
+                ocr_result=result,
+                reviewed=reviewed,
+                receipt_format=result.get("format", format_label),
+            )
         except Exception as exc:
-            if image_paths:
-                repository.remove_images(*image_paths)
             st.error(f"No se pudo guardar el registro. No se confirmó una escritura exitosa. Detalle: {exc}")
+        else:
+            st.session_state["last_saved_source_id"] = source_id
+            if outcome.inserted:
+                st.session_state["selected_receipt_id"] = outcome.receipt_id
+                st.success(f"Registro guardado correctamente. ID: {outcome.receipt_id}.")
+                st.info("La extracción original y los valores confirmados quedaron almacenados por separado para revisar la evidencia.")
+            else:
+                st.success(f"La acción ya estaba registrada. ID: {outcome.receipt_id}; no se creó un duplicado.")
 
     with st.expander("Ver texto original reconocido por EasyOCR"):
         st.text(result.get("raw_text", "") or "(Sin texto reconocido)")
 
 
-def _csv_bytes(rows: list[dict[str, Any]]) -> bytes:
-    output = io.StringIO(newline="")
-    writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL)
-    writer.writerow(["id", "fecha", "comercio", "total"])
-    for row in rows:
-        merchant = str(row["merchant"])
-        # Evita que Excel ejecute contenido del campo comercio como fórmula.
-        if merchant.lstrip().startswith(("=", "+", "-", "@")):
-            merchant = "'" + merchant
-        total = (Decimal(int(row["total_cents"])) / Decimal(100)).quantize(Decimal("0.01"))
-        writer.writerow([row["id"], row["receipt_date"], merchant, f"{total:.2f}"])
-    return output.getvalue().encode("utf-8-sig")
-
-
-def _format_total(cents: int | None) -> str:
-    if cents is None:
-        return "No detectado"
-    return f"{(Decimal(int(cents)) / Decimal(100)):.2f}"
+def _show_archived_image(path: Any, **kwargs: Any) -> bool:
+    """Muestra una imagen archivada; si falta o está dañada, avisa sin romper la página."""
+    if path is None or not path.is_file():
+        return False
+    try:
+        st.image(str(path), **kwargs)
+    except Exception:
+        st.warning(f"No se pudo abrir la imagen archivada ({path.name}); puede estar dañada.")
+    return True
 
 
 def _render_evidence(repository: ReceiptRepository, selected_id: int | None) -> None:
@@ -316,26 +240,23 @@ def _render_evidence(repository: ReceiptRepository, selected_id: int | None) -> 
     st.markdown(f"#### Evidencia del registro ID {record['id']}")
     image_col, details_col = st.columns([1, 1])
     with image_col:
-        image_path = Path(record["image_path"])
-        if image_path.is_file():
-            st.image(str(image_path), caption="Boleta original archivada", width="stretch")
-        else:
+        image_path = repository.resolve_image_path(record["image_path"])
+        if not _show_archived_image(image_path, caption="Boleta original archivada", width="stretch"):
             st.warning("La imagen original ya no está disponible localmente. Los datos del registro siguen accesibles.")
-        processed_path_raw = record.get("processed_image_path")
-        if processed_path_raw and Path(processed_path_raw).is_file():
+        processed_path = repository.resolve_image_path(record.get("processed_image_path"))
+        if processed_path is not None and processed_path.is_file():
             with st.expander("Ver imagen procesada usada por el OCR"):
-                st.image(str(processed_path_raw), width="stretch")
+                _show_archived_image(processed_path, width="stretch")
     with details_col:
         st.markdown("**Datos propuestos originalmente por OCR**")
-        proposed = st.columns(1)
         st.write(f"Fecha: {record.get('proposed_date') or 'No detectada'}")
         st.write(f"Comercio: {record.get('proposed_merchant') or 'No detectado'}")
-        st.write(f"Total: {_format_total(record.get('proposed_total_cents'))}")
+        st.write(f"Total: {format_total(record.get('proposed_total_cents'))}")
         st.divider()
         st.markdown("**Datos finales confirmados por el operador**")
         st.write(f"Fecha: {record['receipt_date']}")
         st.write(f"Comercio: {record['merchant']}")
-        st.write(f"Total: {_format_total(record['total_cents'])}")
+        st.write(f"Total: {format_total(record['total_cents'])}")
         st.caption(f"Formato {record['receipt_format']} · registrado {record['created_at']}")
     with st.expander("Texto íntegro reconocido por EasyOCR"):
         st.text(record.get("original_ocr_text") or "(Sin texto OCR almacenado)")
@@ -343,28 +264,39 @@ def _render_evidence(repository: ReceiptRepository, selected_id: int | None) -> 
 
 def _render_dashboard_tab(repository: ReceiptRepository) -> None:
     st.subheader("Registros guardados")
-    all_rows = repository.list_receipts()
     min_iso, max_iso = repository.date_bounds()
-    if min_iso and max_iso:
-        default_start, default_end = date.fromisoformat(min_iso), date.fromisoformat(max_iso)
-    else:
-        default_start = default_end = date.today()
     first, second, third = st.columns([1, 1, 1.4])
+    # Los filtros de fecha empiezan vacíos (sin límite). Un rango por defecto
+    # min..max quedaría congelado en la sesión y ocultaría registros nuevos.
     with first:
-        start = st.date_input("Fecha desde (inclusive)", value=default_start, key="filter_start_date")
+        start = st.date_input(
+            "Fecha desde (inclusive)", value=None, key="filter_start_date",
+            help="Déjalo vacío para no limitar la fecha inicial.",
+            min_value=date(1900, 1, 1), max_value=date(2100, 12, 31),
+        )
     with second:
-        end = st.date_input("Fecha hasta (inclusive)", value=default_end, key="filter_end_date")
+        end = st.date_input(
+            "Fecha hasta (inclusive)", value=None, key="filter_end_date",
+            help="Déjalo vacío para no limitar la fecha final.",
+            min_value=date(1900, 1, 1), max_value=date(2100, 12, 31),
+        )
     with third:
         merchant_query = st.text_input("Comercio contiene", value="", key="filter_merchant")
-    if start > end:
+    if min_iso and max_iso:
+        st.caption(f"Rango de fechas registrado: {min_iso} a {max_iso}")
+    if start is not None and end is not None and start > end:
         st.error("El rango de fechas está invertido: la fecha inicial debe ser anterior o igual a la final.")
         rows: list[dict[str, Any]] = []
     else:
-        rows = repository.list_receipts(start.isoformat(), end.isoformat(), merchant_query)
+        rows = repository.list_receipts(
+            start.isoformat() if start else None,
+            end.isoformat() if end else None,
+            merchant_query,
+        )
 
     st.caption(f"{len(rows)} registro(s) · ordenados por fecha de boleta descendente")
     visible = [
-        {"ID": row["id"], "Fecha": row["receipt_date"], "Comercio": row["merchant"], "Total": _format_total(row["total_cents"])}
+        {"ID": row["id"], "Fecha": row["receipt_date"], "Comercio": row["merchant"], "Total": format_total(row["total_cents"])}
         for row in rows
     ]
     if not rows:
@@ -380,7 +312,9 @@ def _render_dashboard_tab(repository: ReceiptRepository) -> None:
             hide_index=True,
             on_select="rerun",
             selection_mode="single-row",
-            key="receipts_table",
+            # La selección es un índice posicional: si cambian los filtros, la clave
+            # cambia y la selección se reinicia en vez de apuntar a otra fila.
+            key=f"receipts_table_{start}_{end}_{merchant_query.strip().lower()}",
         )
         selected_rows = frame.selection.rows if hasattr(frame, "selection") else []
         if selected_rows:
@@ -389,7 +323,7 @@ def _render_dashboard_tab(repository: ReceiptRepository) -> None:
                 selected_id = int(rows[selected_index]["id"])
                 st.session_state["selected_receipt_id"] = selected_id
         selected_for_evidence = selected_id
-        csv_content = _csv_bytes(rows)
+        csv_content = csv_bytes(rows)
         st.download_button(
             "Exportar filas filtradas a CSV",
             data=csv_content,
@@ -410,7 +344,7 @@ def render_app() -> None:
         _login_screen()
         return
 
-    repository = get_repository()
+    repository = _repository()
     st.title("Digitalizador inteligente de boletas")
     st.caption(f"Sesión local: {st.session_state['username']} · los datos se conservan en SQLite local")
     with st.sidebar:
