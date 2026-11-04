@@ -1,4 +1,6 @@
-streamlit>=1.35.0,<2.0
+# 1.49 es la primera versión con el parámetro width en todos los widgets usados
+# (form_submit_button, download_button, image, dataframe); verificado con tests/test_ui.py.
+streamlit>=1.49.0,<2.0
 opencv-python-headless>=4.9.0
 numpy>=1.26.0
 Pillow>=10.0.0

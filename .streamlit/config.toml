@@ -1,0 +1,7 @@
+[server]
+# Coincide con MAX_UPLOAD_BYTES (10 MB): Streamlit rechaza archivos mayores
+# antes de cargarlos en memoria. Por defecto Streamlit acepta hasta 200 MB.
+maxUploadSize = 10
+
+[browser]
+gatherUsageStats = false

@@ -1,0 +1,24 @@
+# Datos locales: cuenta, base de datos e imágenes de boletas (información sensible)
+data/
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+users.json
+
+# Entornos y cachés de Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Secretos locales de Streamlit
+.streamlit/secrets.toml
+
+# Editores / sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
