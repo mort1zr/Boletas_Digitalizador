@@ -25,6 +25,7 @@ import re
 import unicodedata
 from dataclasses import asdict, dataclass
 from datetime import date
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from functools import lru_cache
 from typing import Any, Iterable, Sequence
 
@@ -66,11 +67,20 @@ _AMOUNT_RE = re.compile(
     r"(-?\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{1,2})?|-?\d+(?:[.,]\d{1,2})?)(?!\d)",
     re.IGNORECASE,
 )
-_EXCLUDED_AMOUNT_LABELS = (
+# Filas que nunca contienen el total final, aunque empiecen con estas palabras.
+_EXCLUDED_AMOUNT_PREFIXES = (
     "SUBTOTAL", "SUB TOTAL", "IGV", "IVA", "IMPUESTO", "TAX", "VUELTO", "CAMBIO",
     "RECIBIDO", "PAGA CON", "EFECTIVO", "PROPINA", "DESCUENTO", "AHORRO",
-    "GRAVADA", "INAFECTA", "EXONERADA", "BASE IMPONIBLE", "TOTAL DESCUENTO",
-    "TOTAL IMPUESTO", "TOTAL IGV", "TOTAL IVA",
+    "GRAVADA", "INAFECTA", "EXONERADA", "BASE IMPONIBLE",
+)
+# Variantes etiquetadas como "TOTAL ..." que no son el importe a pagar.
+_EXCLUDED_TOTAL_TERMS = (
+    "TOTAL DESCUENTO", "TOTAL IMPUESTO", "TOTAL IGV", "TOTAL IVA",
+)
+# "TOTAL ITEMS 3" o "TOTAL ARTICULOS: 3" son cantidades, no importes.
+_QUANTITY_TOTAL_RE = re.compile(
+    r"\bTOTAL\s*(?:DE\s+)?(?:ITEMS?|ARTICULOS?|ARTS?|UNIDADES|UNDS?|CANTIDAD|CANT|PRODUCTOS?|PIEZAS?)\b"
+    r"|\b(?:CANTIDAD|CANT|N(?:RO|UM|°)?\.?)\s*(?:TOTAL\s*)?(?:DE\s+)?(?:ITEMS?|ARTICULOS?|PRODUCTOS?)\b"
 )
 _DATE_EXCLUSION_LABELS = ("VENCIMIENTO", "VENCE EL", "CADUCIDAD", "VALIDO HASTA", "VÁLIDO HASTA", "DUE DATE")
 _DATE_PREFERRED_LABELS = ("FECHA DE EMISION", "FECHA EMISION", "FECHA DE EMISIÓN", "FECHA", "EMISION", "EMISIÓN", "FECHA/HORA", "DATE")
@@ -79,7 +89,7 @@ _MERCHANT_EXCLUSIONS = (
     "FACTURA ELECTRÓNICA", "FACTURA", "COMPROBANTE DE PAGO", "TICKET DE VENTA", "TICKET ELECTRONICO",
     "TICKET", "BOLETA", "RECIBO", "RUC", "DNI", "DOCUMENTO", "ELECTRONICA", "ELECTRÓNICA", "FECHA", "CLIENTE",
     "CAJERO", "CAJA ", "DIRECCION", "DIRECCIÓN", "TELEFONO", "TELÉFONO", "CELULAR",
-    "WWW.", "HTTP", "EMAIL", "PAGINA", "PÁGINA", "MONEDA", "CODIGO", "CÓDIGO",
+    "WWW.", "HTTP", "HTTPS", "EMAIL", "PAGINA", "PÁGINA", "MONEDA", "CODIGO", "CÓDIGO",
 )
 
 
@@ -87,6 +97,26 @@ def _normalise_text(value: str) -> str:
     decomposed = unicodedata.normalize("NFKD", value)
     without_marks = "".join(ch for ch in decomposed if not unicodedata.combining(ch))
     return re.sub(r"\s+", " ", without_marks).strip().upper()
+
+
+def _word_pattern(labels: Iterable[str]) -> re.Pattern[str]:
+    """Une etiquetas normalizadas en un patrón con límites de palabra.
+
+    Evita falsos positivos por subcadenas: "RUC" no debe descartar "TRUCK"
+    ni "CRUCERO", y "TICKET" no debe descartar "TICKETERA SAC".
+    """
+    parts = []
+    for label in dict.fromkeys(_normalise_text(label) for label in labels):
+        escaped = re.escape(label.strip())
+        # Las etiquetas que terminan en puntuación ("WWW.") no admiten \b al final.
+        suffix = r"\b" if label.strip()[-1:].isalnum() else ""
+        parts.append(rf"\b{escaped}{suffix}")
+    return re.compile("|".join(parts))
+
+
+_MERCHANT_EXCLUSION_RE = _word_pattern(_MERCHANT_EXCLUSIONS)
+_DATE_EXCLUSION_NORMALISED = tuple(dict.fromkeys(_normalise_text(label) for label in _DATE_EXCLUSION_LABELS))
+_DATE_PREFERRED_NORMALISED = tuple(dict.fromkeys(_normalise_text(label) for label in _DATE_PREFERRED_LABELS))
 
 
 def _rotate_expand(image: np.ndarray, angle_degrees: float) -> np.ndarray:
@@ -170,8 +200,10 @@ def preprocess_image(image_bytes: bytes) -> PreprocessedImage:
     gray = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
     rotation = _estimate_skew(gray)
     if abs(rotation) >= 0.15:
-        # El ángulo encontrado es el de las líneas; se rota en sentido contrario.
-        gray = _rotate_expand(gray, -rotation)
+        # En coordenadas de imagen (eje Y hacia abajo) un ángulo positivo de las
+        # líneas es una inclinación horaria. getRotationMatrix2D gira en sentido
+        # antihorario con ángulos positivos, así que rotar +rotation la endereza.
+        gray = _rotate_expand(gray, rotation)
 
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     contrast = clahe.apply(gray)
@@ -274,8 +306,8 @@ def _parse_date_match(match: re.Match[str]) -> str | None:
 
 def _extract_date(lines: Sequence[OCRLine]) -> str:
     candidates: dict[str, float] = {}
-    normalised_exclusions = tuple(_normalise_text(label) for label in _DATE_EXCLUSION_LABELS)
-    normalised_preferred = tuple(_normalise_text(label) for label in _DATE_PREFERRED_LABELS)
+    normalised_exclusions = _DATE_EXCLUSION_NORMALISED
+    normalised_preferred = _DATE_PREFERRED_NORMALISED
     for index, line in enumerate(lines):
         matches = list(_DATE_RE.finditer(line.text))
         previous_end = 0
@@ -306,9 +338,9 @@ def _extract_merchant(lines: Sequence[OCRLine]) -> str:
     for index, line in enumerate(lines[:8]):
         text = re.sub(r"\s+", " ", line.text).strip(" -|:")
         normal = _normalise_text(text)
-        if not text or line.confidence < 0.35 or any(label in normal for label in map(_normalise_text, _MERCHANT_EXCLUSIONS)):
+        if not text or line.confidence < 0.35 or _MERCHANT_EXCLUSION_RE.search(normal):
             continue
-        if _DATE_RE.search(text) or _AMOUNT_RE.search(text) and not re.search(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]", text):
+        if _DATE_RE.search(text) or (_AMOUNT_RE.search(text) and not re.search(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]", text)):
             continue
         letters = sum(char.isalpha() for char in text)
         digits = sum(char.isdigit() for char in text)
@@ -360,11 +392,10 @@ def parse_amount(value: str) -> int | None:
         else:
             token = "".join(pieces)
     try:
-        from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
         amount = Decimal(token).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         cents = int(amount * 100)
         return -cents if negative else cents
-    except Exception:
+    except (InvalidOperation, ValueError):
         return None
 
 
@@ -382,14 +413,11 @@ def _line_amounts(text: str) -> list[int]:
 def _is_excluded_amount_line(normal: str) -> bool:
     # Se excluyen filas de subtotal/impuestos/vuelto, pero no un total final que
     # mencione que incluye IGV o IVA (por ejemplo, "TOTAL A PAGAR INCL. IGV").
-    if any(term in normal for term in ("TOTAL DESCUENTO", "TOTAL IMPUESTO", "TOTAL IGV", "TOTAL IVA")):
+    if any(term in normal for term in _EXCLUDED_TOTAL_TERMS):
         return True
-    exclusion_prefixes = (
-        "SUBTOTAL", "SUB TOTAL", "IGV", "IVA", "IMPUESTO", "TAX", "VUELTO", "CAMBIO",
-        "RECIBIDO", "PAGA CON", "EFECTIVO", "PROPINA", "DESCUENTO", "AHORRO",
-        "GRAVADA", "INAFECTA", "EXONERADA", "BASE IMPONIBLE",
-    )
-    if any(re.match(rf"^\s*{re.escape(label)}\b", normal) for label in exclusion_prefixes):
+    if any(re.match(rf"^\s*{re.escape(label)}\b", normal) for label in _EXCLUDED_AMOUNT_PREFIXES):
+        return True
+    if _QUANTITY_TOTAL_RE.search(normal):
         return True
     return bool(re.search(r"\bR\.?U\.?C\.?\b|\bDNI\b|NRO\.?\s*DOC", normal))
 
@@ -463,7 +491,6 @@ def _extract_total(lines: Sequence[OCRLine], receipt_format: str) -> str:
 
 
 def _format_cents(cents: int) -> str:
-    from decimal import Decimal
     return f"{(Decimal(cents) / Decimal(100)):.2f}"
 
 
