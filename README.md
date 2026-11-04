@@ -15,7 +15,8 @@ Prototipo local en Python con Streamlit, OpenCV, EasyOCR y SQLite. La herramient
 
 - Python 3.10 o superior (recomendado: Python 3.11 o 3.12).
 - Conexión a Internet durante la primera ejecución de EasyOCR para descargar sus modelos preentrenados. No se entrena ningún modelo propio.
-- Los registros, las imágenes y el archivo de usuario se almacenan localmente en `data/` por defecto.
+- Los registros, las imágenes y el archivo de usuario se almacenan localmente en `data/` por defecto. Se puede cambiar con la variable de entorno `RECEIPT_DATA_DIR` (ruta absoluta o relativa al proyecto). La carpeta `data/` está excluida de Git mediante `.gitignore`.
+- Streamlit 1.49 o superior (versión mínima verificada con `tests/test_ui.py`).
 
 ## Instalación y ejecución en Windows (PowerShell)
 
@@ -50,14 +51,24 @@ El primer procesamiento puede tardar más mientras EasyOCR descarga los modelos.
 ```text
  digitalizador_boletas/
  ├── main.py             # Entrada de Streamlit
- ├── ui.py               # Login, carga/revisión, dashboard, CSV y evidencia
+ ├── ui.py               # Login, carga/revisión, dashboard y evidencia (solo presentación)
+ ├── receipt_service.py  # Validación, guardado de la revisión y exportación CSV
  ├── ocr_service.py      # OpenCV, EasyOCR y reglas de extracción A/B
  ├── repository.py       # SQLite y persistencia atómica de imágenes
  ├── auth_service.py     # PBKDF2, verificación y lectura de la cuenta
  ├── create_user.py      # Alta de cuenta local interactiva
  ├── app_config.py       # Rutas, límite de carga y carpetas
+ ├── .streamlit/
+ │   └── config.toml     # maxUploadSize = 10 (MB), igual que MAX_UPLOAD_BYTES
  ├── tests/
- │   └── test_ocr_service.py
+ │   ├── conftest.py             # Carpeta de datos temporal por prueba e imágenes sintéticas
+ │   ├── test_ocr_service.py     # Preprocesado, inclinación, montos, fecha, comercio, total, pipeline
+ │   ├── test_receipt_service.py # Validación, guardado, duplicados, limpieza y CSV
+ │   ├── test_repository.py      # SQLite, filtros, rutas de imágenes
+ │   ├── test_auth_service.py    # Hash, login (incluye usuarios con tildes/ñ), archivos corruptos
+ │   ├── test_create_user.py     # Alta interactiva de la cuenta
+ │   ├── test_app_config.py      # Rutas y límite de carga
+ │   └── test_ui.py              # Interfaz Streamlit con AppTest (login, filtros, evidencia)
  ├── requirements.txt
  └── data/               # Se crea automáticamente; excluida de Git
      ├── users.json
@@ -71,7 +82,7 @@ El primer procesamiento puede tardar más mientras EasyOCR descarga los modelos.
 2. **Escalado:** si el lado más largo supera `2400 px`, se redimensiona proporcionalmente con `cv2.INTER_AREA`. No se recortan regiones de la boleta.
 3. **Escala de grises:** `cv2.cvtColor(..., cv2.COLOR_BGR2GRAY)`.
 4. **Detección de inclinación:** `cv2.Canny(gray, 50, 150, apertureSize=3)` seguido de `cv2.HoughLinesP(edges, rho=1, theta=pi/180, threshold=50, minLineLength=max(30, 0.15*ancho), maxLineGap=20)`. Solo se consideran líneas con ángulo absoluto de hasta `15°`. Se usa la mediana ponderada por longitud. Las rotaciones estimadas menores que `0.15°` se ignoran.
-5. **Rotación:** `cv2.getRotationMatrix2D` y `cv2.warpAffine` con `cv2.INTER_CUBIC`, lienzo expandido para evitar recortes y fondo blanco (`255`).
+5. **Rotación:** se rota por el mismo ángulo medido (en coordenadas de imagen un ángulo positivo es una inclinación horaria y `getRotationMatrix2D` gira en sentido antihorario con ángulos positivos), con `cv2.getRotationMatrix2D` y `cv2.warpAffine` con `cv2.INTER_CUBIC`, lienzo expandido para evitar recortes y fondo blanco (`255`).
 6. **Contraste local:** `cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(gray)`.
 7. **Denoising:** `cv2.bilateralFilter(image, d=5, sigmaColor=35, sigmaSpace=35)`.
 8. **Codificación de salida:** PNG con `cv2.imencode('.png', ..., [cv2.IMWRITE_PNG_COMPRESSION, 3])`; esta copia se entrega a EasyOCR y se conserva por separado para evidencia.
@@ -80,16 +91,16 @@ Los parámetros son punto de partida reproducible; deben compararse con imágene
 
 ## Reglas iniciales para los formatos A y B
 
-- **Formato A:** prioriza una etiqueta explícita (por ejemplo, `TOTAL A PAGAR`, `IMPORTE TOTAL`, `TOTAL GENERAL` o `TOTAL`). Ignora líneas etiquetadas como subtotal, IGV/IVA/impuestos, descuento, vuelto/cambio, efectivo/recibido, propina e identificadores RUC/DNI. Si no encuentra un total etiquetado inequívoco, deja el campo vacío.
+- **Formato A:** prioriza una etiqueta explícita (por ejemplo, `TOTAL A PAGAR`, `IMPORTE TOTAL`, `TOTAL GENERAL` o `TOTAL`). Ignora líneas etiquetadas como subtotal, IGV/IVA/impuestos, descuento, vuelto/cambio, efectivo/recibido, propina, identificadores RUC/DNI y conteos como `TOTAL ITEMS 3` o `CANT. DE ITEMS`. Si no encuentra un total etiquetado inequívoco, deja el campo vacío.
 - **Formato B:** aplica primero las mismas reglas para etiquetas de total. Si no hay una etiqueta identificable, permite como alternativa un monto con moneda o decimales en el tramo final del ticket, excluyendo impuestos, subtotal, vuelto y recibido.
 - **Fecha:** soporta patrones día/mes/año, día-mes-año, día.mes.año y año-mes-día; valida la fecha del calendario y favorece una etiqueta de fecha de emisión. Si dos fechas tienen puntuaciones semejantes y no hay señales suficientes para decidir, deja el campo vacío.
-- **Comercio:** busca un candidato en las líneas iniciales y excluye etiquetas comunes del comprobante, identificadores y datos de contacto. Si ninguna línea parece un comercio, deja el campo vacío.
+- **Comercio:** busca un candidato en las líneas iniciales y excluye etiquetas comunes del comprobante, identificadores y datos de contacto. Las exclusiones se comparan como palabras completas, de modo que `RUC` no descarta `TRUCK` ni `CRUCERO`. Si ninguna línea parece un comercio, deja el campo vacío.
 
 > **Importante:** los documentos de planificación adjuntos describen dos formatos, pero no contienen imágenes de boletas ni definen el diseño exacto de A y B. Estas reglas son una base funcional, no una garantía de extracción correcta. Para cumplir de forma verificable el criterio de tres ejemplos por formato, agreguen ejemplos anonimizados y ajusten/proben las reglas con los valores de referencia del Product Owner. La revisión humana sigue siendo obligatoria.
 
 ## Base de datos y trazabilidad
 
-SQLite conserva fecha, comercio, total en céntimos enteros, instante de registro, ubicación de la imagen original y procesada, texto completo OCR, los tres candidatos iniciales, formato utilizado e identificador único de la acción. Los valores finales se almacenan por separado de los propuestos. El campo monetario se representa en céntimos para evitar errores de punto flotante; la UI y el CSV lo muestran con dos decimales.
+SQLite conserva fecha, comercio, total en céntimos enteros, instante de registro, ubicación de la imagen original y procesada (relativa a `data/images/`, para que la base siga siendo válida si se mueve la carpeta de datos; las rutas absolutas de versiones anteriores siguen funcionando), texto completo OCR, los tres candidatos iniciales, formato utilizado e identificador único de la acción. Los valores finales se almacenan por separado de los propuestos. El campo monetario se representa en céntimos para evitar errores de punto flotante; la UI y el CSV lo muestran con dos decimales.
 
 El CSV incluye los encabezados `id,fecha,comercio,total`, usa UTF-8 con BOM para facilitar la apertura en hojas de cálculo y exporta solo el subconjunto filtrado. Se neutralizan nombres de comercio que comiencen con caracteres de fórmula de hoja de cálculo.
 
@@ -99,7 +110,14 @@ El CSV incluye los encabezados `id,fecha,comercio,total`, usa UTF-8 con BOM para
 pytest -q
 ```
 
-Las pruebas incluidas comprueban formatos numéricos, que el total no se confunda con subtotal/IGV/vuelto, el fallback del Formato B y el tratamiento conservador de fechas ambiguas. La verificación funcional de EasyOCR debe hacerse con boletas reales del conjunto de ajuste.
+Las pruebas se ejecutan sobre una carpeta de datos temporal (nunca tocan `data/`) y cubren:
+
+- **OCR:** preprocesado, corrección de inclinación con imágenes giradas sintéticamente, formatos de monto y fecha, reglas de total/comercio y el pipeline `process_receipt` completo con un lector EasyOCR simulado.
+- **Guardado:** validación de la revisión, valores propuestos vs. confirmados, idempotencia sin pérdida de evidencia y limpieza de imágenes si falla la base de datos.
+- **Persistencia y autenticación:** filtros, escapes de `LIKE`, rutas de imágenes, usuarios con tildes/ñ y archivos de cuenta dañados.
+- **Interfaz:** login, cierre de sesión, filtros combinados, rango invertido, evidencia y tolerancia a imágenes faltantes o dañadas, con `streamlit.testing.v1.AppTest`.
+
+La carga de archivos no puede simularse con `AppTest`; ese flujo se cubre en `test_receipt_service.py`. La verificación de exactitud de EasyOCR debe hacerse con boletas reales del conjunto de ajuste.
 
 ## Limitaciones conocidas
 
