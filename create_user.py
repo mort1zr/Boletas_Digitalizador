@@ -1,7 +1,7 @@
 """Crea o reemplaza la cuenta local. Ejecutar en una terminal, no desde Streamlit."""
 from getpass import getpass
 
-from app_config import USERS_PATH
+import app_config
 from auth_service import load_user, write_user
 
 
@@ -23,7 +23,7 @@ def main() -> None:
     except ValueError as exc:
         print(f"No se pudo crear la cuenta: {exc}")
         return
-    print(f"Cuenta local creada en: {USERS_PATH}")
+    print(f"Cuenta local creada en: {app_config.USERS_PATH}")
     print("El archivo guarda un hash con salt, no la contraseña en texto plano.")
 
 
