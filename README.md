@@ -5,7 +5,7 @@ Prototipo local en Python con Streamlit, OpenCV, EasyOCR y SQLite. La herramient
 ## Funcionalidades incluidas
 
 - **HU-01:** autenticación local mediante `st.session_state`. La contraseña se crea en una terminal, se oculta al escribirla y se almacena como hash PBKDF2-HMAC-SHA256 con salt aleatorio; no hay credenciales predefinidas en el código.
-- **HU-02 / HU-03:** carga individual JPG/JPEG/PNG con límite de 10 MB, vista previa, corrección de inclinación y contraste con OpenCV. El original no se sobrescribe.
+- **HU-02 / HU-03:** carga individual JPG/JPEG/PNG con límite de 10 MB **o captura con la cámara** (webcam o cámara del celular desde el navegador), vista previa, corrección de inclinación y contraste con OpenCV. El original no se sobrescribe.
 - **HU-04 / HU-07 / HU-11:** EasyOCR preentrenado para español e inglés y reglas heurísticas diferenciadas para Formato A y B. Los campos ausentes o dudosos permanecen vacíos.
 - **HU-05 / HU-06:** formulario editable, validaciones para fecha, comercio y total positivo, confirmación explícita y guardado persistente en SQLite. La acción de guardado es idempotente dentro de la misma carga/sesión.
 - **HU-08 / HU-09 / HU-10:** consulta ordenada por fecha descendente, filtros combinables por rango inclusivo y comercio, exportación de las filas filtradas a CSV con total a dos decimales.
@@ -45,6 +45,14 @@ streamlit run main.py
 ```
 
 El primer procesamiento puede tardar más mientras EasyOCR descarga los modelos. Para detener Streamlit, usa `Ctrl+C` en la terminal.
+
+## Captura con la cámara
+
+En la pestaña **Cargar y revisar**, elige **📷 Usar cámara**: el navegador muestra la vista en vivo de la cámara y el botón *Take Photo* captura la imagen, que sigue el mismo flujo que un archivo subido (preprocesado, OCR, revisión, confirmación y guardado). La foto original se archiva como JPG.
+
+- El navegador pide permiso para usar la cámara y solo lo concede en `localhost` o con HTTPS. Si la app se abre desde otro equipo de la red por `http://`, la cámara no estará disponible (subir archivo sí).
+- Se solicita 1080p cuando la versión de Streamlit lo permite; la resolución real depende de la cámara. Para mejores resultados: boleta plana, buena iluminación, fondo oscuro y que ocupe la mayor parte del encuadre.
+- El OCR tarda varios segundos por imagen, por lo que se procesa la foto capturada, no el video continuo.
 
 ## Ejecución con Docker
 
@@ -93,7 +101,8 @@ docker compose up -d                                 # abre http://localhost:850
  │   ├── test_auth_service.py    # Hash, login (incluye usuarios con tildes/ñ), archivos corruptos
  │   ├── test_create_user.py     # Alta interactiva de la cuenta
  │   ├── test_app_config.py      # Rutas y límite de carga
- │   └── test_ui.py              # Interfaz Streamlit con AppTest (login, filtros, evidencia)
+ │   ├── test_ui.py              # Interfaz Streamlit con AppTest (login, filtros, evidencia)
+ │   └── test_ui_capture.py      # Flujo completo archivo/cámara → OCR → revisión → guardado
  ├── .github/workflows/
  │   └── ci.yml          # Pruebas + construcción y arranque de la imagen Docker
  ├── Dockerfile          # Imagen solo-CPU con modelos EasyOCR precargados
@@ -146,7 +155,7 @@ Las pruebas se ejecutan sobre una carpeta de datos temporal (nunca tocan `data/`
 - **Persistencia y autenticación:** filtros, escapes de `LIKE`, rutas de imágenes, usuarios con tildes/ñ y archivos de cuenta dañados.
 - **Interfaz:** login, cierre de sesión, filtros combinados, rango invertido, evidencia y tolerancia a imágenes faltantes o dañadas, con `streamlit.testing.v1.AppTest`.
 
-La carga de archivos no puede simularse con `AppTest`; ese flujo se cubre en `test_receipt_service.py`. La verificación de exactitud de EasyOCR debe hacerse con boletas reales del conjunto de ajuste.
+- **Captura:** flujo completo con archivo y con cámara (`AppTest` simula ambos) usando un lector OCR simulado: candidatos prellenados, corrección manual, confirmación obligatoria, guardado sin duplicados y archivo original intacto. La verificación de exactitud de EasyOCR debe hacerse con boletas reales del conjunto de ajuste.
 
 ## Limitaciones conocidas
 

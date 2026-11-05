@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import hashlib
+import inspect
 import uuid
+from dataclasses import dataclass
 from datetime import date
 from typing import Any
 
@@ -91,20 +93,69 @@ def _source_id_for_upload(upload_hash: str) -> str:
     return str(st.session_state["active_source_id"])
 
 
+SOURCE_FILE = "📁 Subir archivo"
+SOURCE_CAMERA = "📷 Usar cámara"
+
+
+@dataclass(frozen=True)
+class SelectedImage:
+    content: bytes
+    filename: str  # determina la extensión con la que se archiva el original
+    label: str  # texto que se muestra bajo la vista previa
+
+
+def _camera_options() -> dict[str, Any]:
+    # 'resolution' solo existe en versiones recientes de Streamlit; se pide 1080p
+    # cuando está disponible porque el OCR necesita el mayor detalle posible.
+    if "resolution" in inspect.signature(st.camera_input).parameters:
+        return {"resolution": "1080p"}
+    return {}
+
+
+def _select_image() -> SelectedImage | None:
+    """Obtiene la imagen desde un archivo o desde la cámara del navegador."""
+    source = st.radio(
+        "Origen de la imagen",
+        options=[SOURCE_FILE, SOURCE_CAMERA],
+        horizontal=True,
+        key="image_source",
+    )
+    if source == SOURCE_CAMERA:
+        st.caption(
+            "Coloca la boleta plana, con buena luz y ocupando la mayor parte del encuadre; "
+            "un fondo oscuro ayuda. El navegador pedirá permiso para usar la cámara "
+            "(solo funciona en localhost o con HTTPS)."
+        )
+        photo = st.camera_input("Toma una foto de la boleta", key="receipt_camera", **_camera_options())
+        if photo is None:
+            return None
+        return SelectedImage(photo.getvalue(), "camara.jpg", "Foto tomada con la cámara")
+    uploaded = st.file_uploader(
+        "Imagen de la boleta (máximo 10 MB)", type=["jpg", "jpeg", "png"],
+        accept_multiple_files=False, key="receipt_uploader",
+    )
+    if uploaded is None:
+        return None
+    return SelectedImage(uploaded.getvalue(), uploaded.name, uploaded.name)
+
+
 def _render_upload_tab(repository: ReceiptRepository) -> None:
     st.subheader("Digitalizar una boleta")
-    st.write("Carga una sola fotografía JPG o PNG. La imagen original se conserva; el OCR usa una copia procesada.")
-    uploaded = st.file_uploader("Imagen de la boleta (máximo 10 MB)", type=["jpg", "jpeg", "png"], accept_multiple_files=False, key="receipt_uploader")
-    if uploaded is None:
+    st.write(
+        "Sube una fotografía JPG o PNG, o tómala con la cámara. "
+        "La imagen original se conserva; el OCR usa una copia procesada."
+    )
+    selected = _select_image()
+    if selected is None:
         if st.session_state.get("active_upload_hash"):
             st.session_state["active_upload_hash"] = ""
             st.session_state["active_source_id"] = ""
             st.session_state["ocr_result"] = None
             st.session_state["ocr_error"] = ""
-        st.info("Selecciona una imagen para comenzar.")
+        st.info("Selecciona una imagen o toma una foto para comenzar.")
         return
 
-    image_bytes = uploaded.getvalue()
+    image_bytes = selected.content
     if len(image_bytes) > app_config.MAX_UPLOAD_BYTES:
         st.error("El archivo supera el límite de 10 MB. Elige una imagen más pequeña.")
         return
@@ -122,7 +173,7 @@ def _render_upload_tab(repository: ReceiptRepository) -> None:
     source_id = _source_id_for_upload(upload_hash)
     left, right = st.columns([1, 1])
     with left:
-        st.image(image_bytes, caption=f"Imagen original · {uploaded.name}", width="stretch")
+        st.image(image_bytes, caption=f"Imagen original · {selected.label}", width="stretch")
         st.caption(f"Tamaño: {len(image_bytes) / (1024 * 1024):.2f} MB")
     with right:
         format_label = st.selectbox(
@@ -198,7 +249,7 @@ def _render_upload_tab(repository: ReceiptRepository) -> None:
                 repository,
                 source_id=source_id,
                 image_bytes=image_bytes,
-                original_filename=uploaded.name,
+                original_filename=selected.filename,
                 ocr_result=result,
                 reviewed=reviewed,
                 receipt_format=result.get("format", format_label),

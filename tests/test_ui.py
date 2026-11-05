@@ -92,7 +92,7 @@ def test_login_shows_both_tabs_and_logout_returns_to_login(account):
     assert not at.exception
     assert at.session_state["authenticated"] is True
     assert [tab.label for tab in at.tabs] == ["📷 Cargar y revisar", "📊 Consultar registros"]
-    assert "Selecciona una imagen para comenzar." in _texts(at)
+    assert "Selecciona una imagen o toma una foto para comenzar." in _texts(at)
     logout = next(b for b in at.sidebar.button if b.label == "Cerrar sesión")
     logout.click().run()
     assert at.session_state["authenticated"] is False
