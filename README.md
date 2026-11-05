@@ -46,6 +46,31 @@ streamlit run main.py
 
 El primer procesamiento puede tardar más mientras EasyOCR descarga los modelos. Para detener Streamlit, usa `Ctrl+C` en la terminal.
 
+## Ejecución con Docker
+
+La imagen incluye Python 3.12, PyTorch solo-CPU, EasyOCR con sus modelos (español e inglés) ya descargados y la aplicación. Los datos (base SQLite, imágenes y cuenta) viven en el volumen `/data`, de modo que sobreviven a reinicios y actualizaciones de la imagen.
+
+```bash
+docker compose build
+docker compose run --rm app python create_user.py   # crea la cuenta; la contraseña se escribe oculta
+docker compose up -d                                 # abre http://localhost:8501
+```
+
+- `docker compose logs -f` muestra los registros y `docker compose down` detiene la app sin borrar los datos. `docker compose down -v` sí elimina el volumen con los datos.
+- Copia de seguridad del volumen: `docker run --rm -v digitalizador_boletas_boletas-data:/data -v "$PWD":/backup alpine tar czf /backup/boletas.tgz -C /data .` (el prefijo del volumen depende del nombre de la carpeta del proyecto; consúltalo con `docker volume ls`).
+- La imagen pesa varios GB por PyTorch. Argumentos de construcción opcionales:
+  - `PRELOAD_MODELS=0`: no descarga los modelos al construir (se descargan en el primer uso; requiere Internet en el contenedor).
+  - `TORCH_INDEX_URL`: índice alternativo de PyTorch (por defecto, la variante CPU de `download.pytorch.org`).
+  - `BASE_IMAGE`: imagen base alternativa (por ejemplo, `public.ecr.aws/docker/library/python:3.12-slim` si Docker Hub limita las descargas).
+- La autenticación es local y de demostración: si expones el puerto fuera de tu equipo, colócalo detrás de un proxy con HTTPS.
+
+## Integración continua
+
+`.github/workflows/ci.yml` se ejecuta en cada push y pull request:
+
+1. **Pruebas:** `pytest` con Python 3.11 y 3.12 (EasyOCR se omite porque las pruebas lo simulan).
+2. **Imagen Docker:** construye la imagen, la arranca y comprueba `/_stcore/health` y que los módulos de la app y EasyOCR se importan dentro del contenedor.
+
 ## Estructura
 
 ```text
@@ -69,6 +94,10 @@ El primer procesamiento puede tardar más mientras EasyOCR descarga los modelos.
  │   ├── test_create_user.py     # Alta interactiva de la cuenta
  │   ├── test_app_config.py      # Rutas y límite de carga
  │   └── test_ui.py              # Interfaz Streamlit con AppTest (login, filtros, evidencia)
+ ├── .github/workflows/
+ │   └── ci.yml          # Pruebas + construcción y arranque de la imagen Docker
+ ├── Dockerfile          # Imagen solo-CPU con modelos EasyOCR precargados
+ ├── docker-compose.yml  # Servicio con volumen persistente para /data
  ├── requirements.txt
  └── data/               # Se crea automáticamente; excluida de Git
      ├── users.json
