@@ -1,0 +1,16 @@
+# Nunca copiar datos locales (cuenta, base, imágenes) ni artefactos al contexto de build.
+data/
+.git/
+.github/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+tests/
+*.sqlite3*
+users.json
+.streamlit/secrets.toml
+Dockerfile
+docker-compose.yml
+.dockerignore

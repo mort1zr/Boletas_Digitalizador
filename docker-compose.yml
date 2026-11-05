@@ -1,0 +1,17 @@
+# Uso:
+#   docker compose build
+#   docker compose run --rm app python create_user.py   # crea la cuenta (interactivo)
+#   docker compose up -d                                 # http://localhost:8501
+services:
+  app:
+    build:
+      context: .
+    image: digitalizador-boletas:latest
+    ports:
+      - "8501:8501"
+    volumes:
+      - boletas-data:/data
+    restart: unless-stopped
+
+volumes:
+  boletas-data:
