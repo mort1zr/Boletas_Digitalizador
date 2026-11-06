@@ -1,6 +1,6 @@
 {
   "entorno": {
-    "fecha_ejecucion": "2026-11-06T18:29:19",
+    "fecha_ejecucion": "2026-11-06T21:35:42",
     "python": "3.13.18",
     "sistema": "Linux-6.18.44-fc-v242-x86_64-with-glibc2.39",
     "procesador": "x86_64",
@@ -11,170 +11,158 @@
     {
       "motor": "easyocr",
       "version": "EasyOCR 1.7.2 (PyTorch 2.15.0+cu132, CPU)",
-      "n": 24,
-      "exactitud_fecha": 83.3,
-      "exactitud_comercio": 50.0,
-      "exactitud_total": 87.5,
-      "exactitud_global_campos": 73.6,
-      "exactitud_por_comprobante": 41.7,
-      "cer_medio": 0.3653,
-      "t_medio_s": 13.59,
-      "t_desv_s": 1.09,
-      "t_min_s": 12.36,
-      "t_max_s": 16.23,
-      "t_ocr_medio_s": 13.47,
-      "t_preproceso_medio_s": 0.113,
-      "arranque_s": 14.54,
+      "n": 5,
+      "exactitud_fecha": 40.0,
+      "exactitud_comercio": 0.0,
+      "exactitud_total": 40.0,
+      "exactitud_global_campos": 26.7,
+      "exactitud_por_comprobante": 0.0,
+      "similitud_comercio_media": 0.224,
+      "comercio_aprox_090": 0.0,
+      "t_medio_s": 9.57,
+      "t_desv_s": 0.67,
+      "t_min_s": 8.82,
+      "t_max_s": 10.73,
+      "t_ocr_medio_s": 9.5,
+      "t_preproceso_medio_s": 0.066,
+      "arranque_s": 3.89,
       "por_formato": {
         "A": {
-          "n": 8,
-          "fecha": 100.0,
-          "comercio": 75.0,
-          "total": 100.0,
-          "comprobante": 75.0
+          "n": 3,
+          "fecha": 33.3,
+          "comercio": 0.0,
+          "total": 33.3,
+          "comprobante": 0.0
         },
         "B": {
-          "n": 8,
-          "fecha": 75.0,
-          "comercio": 50.0,
-          "total": 87.5,
-          "comprobante": 37.5
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
         },
         "C": {
-          "n": 8,
-          "fecha": 75.0,
-          "comercio": 25.0,
-          "total": 75.0,
-          "comprobante": 12.5
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
         }
       },
       "por_condicion": {
-        "desenfoque": {
-          "n": 4,
-          "fecha": 100.0,
-          "comercio": 25.0,
-          "total": 75.0,
-          "comprobante": 25.0
-        },
-        "ideal": {
-          "n": 4,
-          "fecha": 100.0,
-          "comercio": 75.0,
+        "arrugada": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
           "total": 100.0,
-          "comprobante": 75.0
+          "comprobante": 0.0
         },
-        "iluminacion": {
-          "n": 4,
-          "fecha": 100.0,
-          "comercio": 25.0,
-          "total": 75.0,
-          "comprobante": 25.0
-        },
-        "inclinada": {
-          "n": 4,
-          "fecha": 75.0,
-          "comercio": 75.0,
+        "arrugada_y_reflejo": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
           "total": 100.0,
-          "comprobante": 50.0
+          "comprobante": 0.0
         },
-        "perspectiva": {
-          "n": 4,
+        "bien_tomada": {
+          "n": 1,
           "fecha": 100.0,
-          "comercio": 50.0,
-          "total": 100.0,
-          "comprobante": 50.0
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
         },
-        "ruido": {
-          "n": 4,
-          "fecha": 25.0,
-          "comercio": 50.0,
-          "total": 75.0,
-          "comprobante": 25.0
+        "inclinada_y_tenue": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "sello_y_papel_coloreado": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
         }
       }
     },
     {
       "motor": "tesseract",
       "version": "Tesseract 5.3.4 (pytesseract, '--oem 1 --psm 6', idioma spa)",
-      "n": 24,
-      "exactitud_fecha": 95.8,
-      "exactitud_comercio": 87.5,
-      "exactitud_total": 95.8,
-      "exactitud_global_campos": 93.1,
-      "exactitud_por_comprobante": 83.3,
-      "cer_medio": 0.3406,
-      "t_medio_s": 0.64,
-      "t_desv_s": 0.12,
-      "t_min_s": 0.42,
-      "t_max_s": 0.81,
-      "t_ocr_medio_s": 0.52,
-      "t_preproceso_medio_s": 0.113,
+      "n": 5,
+      "exactitud_fecha": 40.0,
+      "exactitud_comercio": 0.0,
+      "exactitud_total": 20.0,
+      "exactitud_global_campos": 20.0,
+      "exactitud_por_comprobante": 0.0,
+      "similitud_comercio_media": 0.407,
+      "comercio_aprox_090": 20.0,
+      "t_medio_s": 0.97,
+      "t_desv_s": 0.34,
+      "t_min_s": 0.4,
+      "t_max_s": 1.45,
+      "t_ocr_medio_s": 0.9,
+      "t_preproceso_medio_s": 0.075,
       "arranque_s": 0.0,
       "por_formato": {
         "A": {
-          "n": 8,
-          "fecha": 100.0,
-          "comercio": 87.5,
-          "total": 100.0,
-          "comprobante": 87.5
+          "n": 3,
+          "fecha": 33.3,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
         },
         "B": {
-          "n": 8,
-          "fecha": 87.5,
-          "comercio": 100.0,
-          "total": 87.5,
-          "comprobante": 87.5
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
         },
         "C": {
-          "n": 8,
+          "n": 1,
           "fecha": 100.0,
-          "comercio": 75.0,
+          "comercio": 0.0,
           "total": 100.0,
-          "comprobante": 75.0
+          "comprobante": 0.0
         }
       },
       "por_condicion": {
-        "desenfoque": {
-          "n": 4,
-          "fecha": 100.0,
-          "comercio": 75.0,
-          "total": 100.0,
-          "comprobante": 75.0
+        "arrugada": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
         },
-        "ideal": {
-          "n": 4,
-          "fecha": 100.0,
-          "comercio": 100.0,
-          "total": 100.0,
-          "comprobante": 100.0
+        "arrugada_y_reflejo": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
         },
-        "iluminacion": {
-          "n": 4,
+        "bien_tomada": {
+          "n": 1,
           "fecha": 100.0,
-          "comercio": 50.0,
+          "comercio": 0.0,
           "total": 100.0,
-          "comprobante": 50.0
+          "comprobante": 0.0
         },
-        "inclinada": {
-          "n": 4,
+        "inclinada_y_tenue": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "sello_y_papel_coloreado": {
+          "n": 1,
           "fecha": 100.0,
-          "comercio": 100.0,
-          "total": 100.0,
-          "comprobante": 100.0
-        },
-        "perspectiva": {
-          "n": 4,
-          "fecha": 100.0,
-          "comercio": 100.0,
-          "total": 100.0,
-          "comprobante": 100.0
-        },
-        "ruido": {
-          "n": 4,
-          "fecha": 75.0,
-          "comercio": 100.0,
-          "total": 75.0,
-          "comprobante": 75.0
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
         }
       }
     }
