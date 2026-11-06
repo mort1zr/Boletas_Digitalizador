@@ -1,0 +1,182 @@
+{
+  "entorno": {
+    "fecha_ejecucion": "2026-11-06T18:29:19",
+    "python": "3.13.18",
+    "sistema": "Linux-6.18.44-fc-v242-x86_64-with-glibc2.39",
+    "procesador": "x86_64",
+    "opencv": "5.0.0",
+    "nucleos_cpu": 4
+  },
+  "resultados": [
+    {
+      "motor": "easyocr",
+      "version": "EasyOCR 1.7.2 (PyTorch 2.15.0+cu132, CPU)",
+      "n": 24,
+      "exactitud_fecha": 83.3,
+      "exactitud_comercio": 50.0,
+      "exactitud_total": 87.5,
+      "exactitud_global_campos": 73.6,
+      "exactitud_por_comprobante": 41.7,
+      "cer_medio": 0.3653,
+      "t_medio_s": 13.59,
+      "t_desv_s": 1.09,
+      "t_min_s": 12.36,
+      "t_max_s": 16.23,
+      "t_ocr_medio_s": 13.47,
+      "t_preproceso_medio_s": 0.113,
+      "arranque_s": 14.54,
+      "por_formato": {
+        "A": {
+          "n": 8,
+          "fecha": 100.0,
+          "comercio": 75.0,
+          "total": 100.0,
+          "comprobante": 75.0
+        },
+        "B": {
+          "n": 8,
+          "fecha": 75.0,
+          "comercio": 50.0,
+          "total": 87.5,
+          "comprobante": 37.5
+        },
+        "C": {
+          "n": 8,
+          "fecha": 75.0,
+          "comercio": 25.0,
+          "total": 75.0,
+          "comprobante": 12.5
+        }
+      },
+      "por_condicion": {
+        "desenfoque": {
+          "n": 4,
+          "fecha": 100.0,
+          "comercio": 25.0,
+          "total": 75.0,
+          "comprobante": 25.0
+        },
+        "ideal": {
+          "n": 4,
+          "fecha": 100.0,
+          "comercio": 75.0,
+          "total": 100.0,
+          "comprobante": 75.0
+        },
+        "iluminacion": {
+          "n": 4,
+          "fecha": 100.0,
+          "comercio": 25.0,
+          "total": 75.0,
+          "comprobante": 25.0
+        },
+        "inclinada": {
+          "n": 4,
+          "fecha": 75.0,
+          "comercio": 75.0,
+          "total": 100.0,
+          "comprobante": 50.0
+        },
+        "perspectiva": {
+          "n": 4,
+          "fecha": 100.0,
+          "comercio": 50.0,
+          "total": 100.0,
+          "comprobante": 50.0
+        },
+        "ruido": {
+          "n": 4,
+          "fecha": 25.0,
+          "comercio": 50.0,
+          "total": 75.0,
+          "comprobante": 25.0
+        }
+      }
+    },
+    {
+      "motor": "tesseract",
+      "version": "Tesseract 5.3.4 (pytesseract, '--oem 1 --psm 6', idioma spa)",
+      "n": 24,
+      "exactitud_fecha": 95.8,
+      "exactitud_comercio": 87.5,
+      "exactitud_total": 95.8,
+      "exactitud_global_campos": 93.1,
+      "exactitud_por_comprobante": 83.3,
+      "cer_medio": 0.3406,
+      "t_medio_s": 0.64,
+      "t_desv_s": 0.12,
+      "t_min_s": 0.42,
+      "t_max_s": 0.81,
+      "t_ocr_medio_s": 0.52,
+      "t_preproceso_medio_s": 0.113,
+      "arranque_s": 0.0,
+      "por_formato": {
+        "A": {
+          "n": 8,
+          "fecha": 100.0,
+          "comercio": 87.5,
+          "total": 100.0,
+          "comprobante": 87.5
+        },
+        "B": {
+          "n": 8,
+          "fecha": 87.5,
+          "comercio": 100.0,
+          "total": 87.5,
+          "comprobante": 87.5
+        },
+        "C": {
+          "n": 8,
+          "fecha": 100.0,
+          "comercio": 75.0,
+          "total": 100.0,
+          "comprobante": 75.0
+        }
+      },
+      "por_condicion": {
+        "desenfoque": {
+          "n": 4,
+          "fecha": 100.0,
+          "comercio": 75.0,
+          "total": 100.0,
+          "comprobante": 75.0
+        },
+        "ideal": {
+          "n": 4,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "iluminacion": {
+          "n": 4,
+          "fecha": 100.0,
+          "comercio": 50.0,
+          "total": 100.0,
+          "comprobante": 50.0
+        },
+        "inclinada": {
+          "n": 4,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "perspectiva": {
+          "n": 4,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "ruido": {
+          "n": 4,
+          "fecha": 75.0,
+          "comercio": 100.0,
+          "total": 75.0,
+          "comprobante": 75.0
+        }
+      }
+    }
+  ]
+}
