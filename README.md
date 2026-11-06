@@ -159,7 +159,7 @@ Las pruebas se ejecutan sobre una carpeta de datos temporal (nunca tocan `data/`
 
 ## Experimentos del Avance 2
 
-La carpeta `experimentos/` contiene el conjunto de 24 comprobantes **sintéticos**, sus valores de referencia, los scripts que comparan EasyOCR y Tesseract con el pipeline real y los resultados obtenidos. Las instrucciones para reproducirlos están en `experimentos/README.md`.
+La carpeta `experimentos/` contiene una muestra de 5 boletas **reales anonimizadas**, sus valores de referencia, los scripts que comparan EasyOCR y Tesseract con el pipeline real y los resultados obtenidos. Las instrucciones para reproducirlos están en `experimentos/README.md`.
 
 ## Limitaciones conocidas
 
