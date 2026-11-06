@@ -1,0 +1,26 @@
+digraph G {
+  graph [rankdir=TB, fontname="Liberation Serif", nodesep=0.35, ranksep=0.28, dpi=200, pad=0.2];
+  node  [fontname="Liberation Serif", fontsize=11, shape=box, style="rounded,filled", fillcolor="#F2F5FA", color="#33445C", penwidth=1.1, width=3.2];
+  edge  [fontname="Liberation Serif", fontsize=10, color="#33445C", arrowsize=0.7];
+  ini  [label="Inicio", shape=oval, fillcolor="#DDE6F2", width=1.2];
+  e1   [label="1. Recepción del comprobante\n(boleta, ticket o boleta de restaurante)"];
+  e2   [label="2. Captura o carga de la imagen\n(archivo JPG/PNG o cámara del navegador)"];
+  v1   [label="¿Imagen válida?\n(≤ 10 MB y decodificable)", shape=diamond, fillcolor="#FFF6E0", width=2.6];
+  err  [label="Mensaje de error\ny nueva captura", fillcolor="#FBE3E3", width=1.8];
+  e3   [label="3. Preprocesamiento con OpenCV\nescala ≤ 2400 px · grises · corrección de inclinación\n(Canny + Hough) · CLAHE · filtro bilateral"];
+  e4   [label="4. Reconocimiento OCR con EasyOCR\n(detección CRAFT + reconocimiento CRNN, es/en)"];
+  e5   [label="5. Extracción de campos\nfecha · comercio · total (reglas formato A/B)"];
+  e6   [label="6. Validación humana\nel usuario revisa y corrige los campos propuestos"];
+  v2   [label="¿Campos válidos y\nconfirmación explícita?", shape=diamond, fillcolor="#FFF6E0", width=2.6];
+  e7   [label="7. Almacenamiento\nSQLite (valores propuestos y confirmados)\n+ imagen original y procesada"];
+  e8   [label="8. Consulta y exportación\nfiltros por fecha y comercio · evidencia · CSV"];
+  fin  [label="Fin", shape=oval, fillcolor="#DDE6F2", width=1.2];
+  ini -> e1 -> e2 -> v1;
+  v1 -> err [label=" No"]; err -> e2 [constraint=false];
+  v1 -> e3 [label=" Sí"];
+  e3 -> e4 -> e5 -> e6 -> v2;
+  v2 -> e6 [label=" No: corregir", constraint=false];
+  v2 -> e7 [label=" Sí"];
+  e7 -> e8 -> fin;
+  {rank=same; v1; err}
+}

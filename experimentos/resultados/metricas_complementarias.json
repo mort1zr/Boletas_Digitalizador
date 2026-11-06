@@ -1,0 +1,58 @@
+{
+  "ronda1_easyocr": {
+    "campos_correctos": 38,
+    "campos_total": 72,
+    "ic95_global": [
+      41.4,
+      63.9
+    ],
+    "comprobantes_correctos": 3,
+    "ic95_comprobante": [
+      4.3,
+      31.0
+    ],
+    "comercio_aprox_090": 83.3
+  },
+  "ronda1_tesseract": {
+    "campos_correctos": 67,
+    "campos_total": 72,
+    "ic95_global": [
+      84.8,
+      97.0
+    ],
+    "comprobantes_correctos": 20,
+    "ic95_comprobante": [
+      64.1,
+      93.3
+    ],
+    "comercio_aprox_090": 100.0
+  },
+  "ronda2_easyocr": {
+    "campos_correctos": 53,
+    "campos_total": 72,
+    "ic95_global": [
+      62.4,
+      82.4
+    ],
+    "comprobantes_correctos": 10,
+    "ic95_comprobante": [
+      24.5,
+      61.2
+    ],
+    "comercio_aprox_090": 83.3
+  },
+  "ronda2_tesseract": {
+    "campos_correctos": 67,
+    "campos_total": 72,
+    "ic95_global": [
+      84.8,
+      97.0
+    ],
+    "comprobantes_correctos": 20,
+    "ic95_comprobante": [
+      64.1,
+      93.3
+    ],
+    "comercio_aprox_090": 100.0
+  }
+}

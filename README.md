@@ -157,6 +157,10 @@ Las pruebas se ejecutan sobre una carpeta de datos temporal (nunca tocan `data/`
 
 - **Captura:** flujo completo con archivo y con cámara (`AppTest` simula ambos) usando un lector OCR simulado: candidatos prellenados, corrección manual, confirmación obligatoria, guardado sin duplicados y archivo original intacto. La verificación de exactitud de EasyOCR debe hacerse con boletas reales del conjunto de ajuste.
 
+## Experimentos del Avance 2
+
+La carpeta `experimentos/` contiene el conjunto de 24 comprobantes **sintéticos**, sus valores de referencia, los scripts que comparan EasyOCR y Tesseract con el pipeline real y los resultados obtenidos. Las instrucciones para reproducirlos están en `experimentos/README.md`.
+
 ## Limitaciones conocidas
 
 - Es un prototipo local, no multiusuario ni desplegado en la nube.
