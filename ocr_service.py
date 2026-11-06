@@ -494,6 +494,23 @@ def _format_cents(cents: int) -> str:
     return f"{(Decimal(cents) / Decimal(100)):.2f}"
 
 
+_SPLIT_DECIMAL_RE = re.compile(r"(?<=\d)\s*([.,])\s+(?=\d{2}(?!\d))|(?<=\d)\s+([.,])\s*(?=\d{2}(?!\d))")
+_SPACE_BEFORE_DOT_RE = re.compile(r"(?<=[A-Za-zÁÉÍÓÚÑáéíóúñ])\s+\.(?=\s|$)")
+
+
+def normalise_ocr_spacing(text: str) -> str:
+    """Corrige espacios que el OCR inserta al unir cajas de texto vecinas.
+
+    Los detectores por regiones (p. ej. CRAFT en EasyOCR) pueden separar un importe
+    en dos cajas ("65" y ".50"); al unirlas en una línea queda "65 .50" y el importe
+    se lee mal. También aparece "S.A.C ." en razones sociales. La corrección es
+    genérica y se aplica igual a cualquier motor OCR.
+    """
+    fixed = _SPLIT_DECIMAL_RE.sub(lambda m: m.group(1) or m.group(2), text)
+    fixed = _SPACE_BEFORE_DOT_RE.sub(".", fixed)
+    return re.sub(r"\s+", " ", fixed).strip()
+
+
 def extract_fields(lines: Iterable[OCRLine | dict[str, Any] | str], receipt_format: str = "A") -> ReceiptFields:
     """Extrae fecha, comercio y total. Los campos no sustentados quedan vacíos."""
     normalised_lines: list[OCRLine] = []
@@ -509,7 +526,11 @@ def extract_fields(lines: Iterable[OCRLine | dict[str, Any] | str], receipt_form
                 y_center=float(item.get("y_center", 0.0)),
                 x_left=float(item.get("x_left", 0.0)),
             ))
-    normalised_lines = [line for line in normalised_lines if line.text.strip()]
+    normalised_lines = [
+        OCRLine(normalise_ocr_spacing(line.text), line.confidence, line.y_center, line.x_left)
+        for line in normalised_lines
+        if line.text.strip()
+    ]
     receipt_format = receipt_format.strip().upper()
     if receipt_format not in ("A", "B"):
         raise ValueError("El formato debe ser A o B.")

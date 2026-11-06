@@ -327,3 +327,38 @@ def test_run_ocr_fails_clearly_when_no_text(monkeypatch):
     monkeypatch.setattr(ocr_service, "_reader", lambda: _FakeReader([]))
     with pytest.raises(RuntimeError, match="no reconoció texto"):
         run_ocr(np.full((50, 50), 255, dtype=np.uint8))
+
+
+# ---------------------------------------------------------------------------
+# Normalización del espaciado introducido por el OCR (hallazgo del Avance 2)
+# ---------------------------------------------------------------------------
+from ocr_service import normalise_ocr_spacing  # noqa: E402
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("IMPORTE TOTAL S/ 65 .50", "IMPORTE TOTAL S/ 65.50"),
+        ("IGV 18% S/ 9 . 99", "IGV 18% S/ 9.99"),
+        ("TOTAL S/ 12 ,50", "TOTAL S/ 12,50"),
+        ("MINIMARKET SANTA ROSA S.A.C .", "MINIMARKET SANTA ROSA S.A.C."),
+        ("Fecha: 21/10/2026", "Fecha: 21/10/2026"),
+        ("3 CINTA AISLANTE 10.50", "3 CINTA AISLANTE 10.50"),
+        ("Cant 3 .5 kg", "Cant 3 .5 kg"),  # un solo decimal: no se toca
+    ],
+)
+def test_normalise_ocr_spacing(raw, expected):
+    assert normalise_ocr_spacing(raw) == expected
+
+
+def test_split_decimal_boxes_no_longer_break_the_total():
+    # Salida real de EasyOCR en el experimento: el importe llegó en dos cajas.
+    result = extract_fields([
+        OCRLine("MINIMARKET SANTA ROSA S.A.C .", 0.9),
+        OCRLine("Fecha de emision: 02/03/2026", 0.9),
+        OCRLine("OP . GRAVADA 5/ 55.51", 0.9),
+        OCRLine("IGV 188 S/ 9 . 99", 0.9),
+        OCRLine("IMPORTE TOTAL S/ 65 .50", 0.9),
+    ], "A")
+    assert result.total == "65.50"
+    assert result.merchant == "MINIMARKET SANTA ROSA S.A.C."
