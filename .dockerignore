@@ -14,3 +14,5 @@ users.json
 Dockerfile
 docker-compose.yml
 .dockerignore
+deploy/
+experimentos/
