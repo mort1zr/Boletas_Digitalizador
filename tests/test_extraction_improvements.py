@@ -116,3 +116,47 @@ def test_realce_es_opcional_y_cambia_la_imagen():
     sin = o.preprocess_image(imagen).image
     con = o.preprocess_image(imagen, enhance=True).image
     assert sin.shape == con.shape and not np.array_equal(sin, con)
+
+
+# ------------------------------------------------------------------ total sin etiqueta y encabezados de columna
+def test_total_ignora_el_encabezado_de_columna_con_total():
+    campos = o.extract_fields(_lineas("DESCRIPCION P.U. TOTAL", "[2.00]PANT SEDA 43.00 86.00", "[1.00]PANTALON 43.00 43.00",
+                                      "GRAVADO: S/ 109.32", "IGV: S/ 19.68", "TOTAL: S/ 129.00"))
+    assert campos.total == "129.00"
+
+
+def test_voucher_sin_etiqueta_usa_el_unico_importe_aislado_y_avisa():
+    campos = o.extract_fields(_lineas("NIUBIZ", "VISA BANCO SCOTIABANK", "03/09/26 12:25", "TERM: 10005039 LOTE: 008", "S/ 175.20", "COPIA CLIENTE"))
+    assert campos.total == "175.20"
+    assert any("único importe aislado" in w for w in campos.warnings)
+
+
+def test_importe_aislado_ambiguo_no_se_adivina():
+    campos = o.extract_fields(_lineas("TIENDA", "S/ 10.00", "S/ 20.00"))
+    assert campos.total == ""
+
+
+def test_importe_aislado_con_ocr_5_barra_en_lugar_de_s_barra():
+    assert o.extract_fields(_lineas("NIUBIZ", "VISA BANCO", "TERM: 10005039 LOTE: 008", "5/ 175.20")).total == "175.20"
+
+
+def test_total_etiquetado_tiene_prioridad_sobre_el_importe_aislado():
+    campos = o.extract_fields(_lineas("OPENPAY", "S/ 12.00", "TOTAL S/50.00"))
+    assert campos.total == "50.00"
+
+
+# ------------------------------------------------------------------ comercio: persona natural y direcciones
+def test_comercio_persona_natural_justo_antes_del_ruc():
+    campos = o.extract_fields(_lineas("TOSCANO HUILLCA PAUL CHRISTIAN", "RUC 10480354465", "PROLONGACION GAMARRA # 860 (TDA. 138-139)",
+                                      "GALERIA AZUL GAMARRA LA VICTORIA- LIMA", "BOLETA DE VENTA ELECTRONICA"))
+    assert campos.merchant == "TOSCANO HUILLCA PAUL CHRISTIAN"
+
+
+def test_una_direccion_no_gana_al_nombre_del_comercio():
+    campos = o.extract_fields(_lineas("PROLONGACION GAMARRA 860 TDA 138", "TIENDA LA ESTRELLA", "BOLETA DE VENTA ELECTRONICA"))
+    assert campos.merchant == "TIENDA LA ESTRELLA"
+
+
+def test_boleta_con_items_sin_etiqueta_no_adivina_el_total():
+    campos = o.extract_fields(_lineas("TIENDA DEMO", "Pan 3.50", "S/ 8.70"))
+    assert campos.total == ""

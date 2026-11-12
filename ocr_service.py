@@ -430,6 +430,7 @@ def _extract_date(lines: Sequence[OCRLine]) -> str:
 
 _LEGAL_FORM_RE = re.compile(r"\b(S\.?\s?A\.?\s?C\.?|S\.?\s?R\.?\s?L\.?|E\.?\s?I\.?\s?R\.?\s?L\.?|S\.?\s?A\.?)(?=\s|$|[^A-Za-z])", re.I)
 _RUC_LABEL_RE = re.compile(r"\bR\.?U\.?C\b")
+_ADDRESS_RE = re.compile(r"^(?:AV|AVDA|AVENIDA|JR|JIRON|CAL|CALLE|PSJE|PASAJE|PROLONGACION|URB|MZ|LT|GALERIA|CC|C\.C)\b[. ]")
 
 
 def _extract_merchant(lines: Sequence[OCRLine]) -> str:
@@ -447,11 +448,16 @@ def _extract_merchant(lines: Sequence[OCRLine]) -> str:
             continue
         # Se priorizan las líneas al inicio sin depender exclusivamente de mayúsculas.
         score = (max(0.0, 6.0 - index) * 0.65) + line.confidence * 1.8
+        before_ruc = index + 1 < len(lines) and bool(_RUC_LABEL_RE.search(_normalise_text(lines[index + 1].text)))
         if _LEGAL_FORM_RE.search(text):
             score += 0.25
             # La razón social impresa justo antes del RUC es la mejor evidencia del comercio.
-            if any(_RUC_LABEL_RE.search(_normalise_text(near.text)) for near in lines[index + 1:index + 4]):
+            if before_ruc or any(_RUC_LABEL_RE.search(_normalise_text(near.text)) for near in lines[index + 1:index + 4]):
                 score += 2.0
+        elif before_ruc:
+            score += 1.5  # nombre de persona natural o nombre comercial impreso encima del RUC
+        if _ADDRESS_RE.match(normal):
+            score -= 1.5
         candidates.append((score, index, text))
     if not candidates:
         return ""
@@ -536,6 +542,30 @@ def _total_label_score(normal: str) -> float:
     return -1.0
 
 
+# «DESCRIPCION  P.U.  TOTAL» es el encabezado de la tabla de ítems, no el total a pagar.
+_COLUMN_HEADER_RE = re.compile(r"\bDESCRIPCION\b|\bP\.?\s?U\.?\b|\bPRECIO\b|\bCANT(?:IDAD)?\b|\bARTICULO\b|\bIMPORTE\s+TOTAL\s+IGV\b")
+# Línea que es solo un importe: «S/ 175.20» (los vouchers de POS no siempre dicen «TOTAL»).
+_ONLY_AMOUNT_RE = re.compile(r"^\W{0,3}(?:S|5|\$)\s*/?\.?\s*(\d{1,3}(?:[.,]\d{3})*[.,]\d{2}|\d+[.,]\d{2})\W{0,3}$", re.I)
+
+
+_VOUCHER_MARKER_RE = re.compile(r"\b(?:VISA|MASTERCARD|MASTER|AMEX|DINERS|TARJETA|DEBITO|CREDITO|TERM|LOTE|REF|AP|VENTA\s*-?\s*ID|APROBADA|COPIA\s+(?:CLIENTE|PARA\s+EL\s+CLIENTE|DE\s+COMPRA))\b")
+
+
+def _isolated_amount(lines: Sequence[OCRLine]) -> str:
+    """Total de un voucher de POS sin etiqueta: el único importe que ocupa una línea completa.
+
+    Solo se usa si el documento parece un voucher de tarjeta (al menos dos marcas como VISA, TERM,
+    LOTE, REF o «COPIA CLIENTE»); en una boleta con ítems no se adivina el total sin etiqueta.
+    """
+    markers = {m.group(0) for line in lines for m in _VOUCHER_MARKER_RE.finditer(_normalise_text(line.text))}
+    if len(markers) < 2:
+        return ""
+    found = {parse_amount(m.group(1)) for line in lines if (m := _ONLY_AMOUNT_RE.match(line.text.strip())) and line.confidence >= 0.35}
+    found.discard(None)
+    found = {amount for amount in found if amount and amount > 0}
+    return _format_cents(found.pop()) if len(found) == 1 else ""
+
+
 def _extract_total(lines: Sequence[OCRLine], receipt_format: str) -> str:
     scored: list[tuple[float, int, int]] = []  # puntaje, índice de línea, céntimos
     for index, line in enumerate(lines):
@@ -545,7 +575,8 @@ def _extract_total(lines: Sequence[OCRLine], receipt_format: str) -> str:
             continue
         amounts = _line_amounts(line.text)
         amount_index = index
-        if not amounts and index + 1 < len(lines):
+        same_line = bool(amounts)
+        if not amounts and index + 1 < len(lines) and not _COLUMN_HEADER_RE.search(normal):
             next_normal = _normalise_text(lines[index + 1].text)
             if not _is_excluded_amount_line(next_normal) and not _DATE_RE.search(lines[index + 1].text):
                 amounts = _line_amounts(lines[index + 1].text)
@@ -555,7 +586,7 @@ def _extract_total(lines: Sequence[OCRLine], receipt_format: str) -> str:
             continue
         # Un total etiquetado normalmente tiene un solo importe; con varios, el final suele ser el total.
         amount = positive_amounts[-1]
-        score = label_score + line.confidence
+        score = label_score + line.confidence + (1.5 if same_line else 0.0)
         if receipt_format.upper() == "B":
             score += min(index / max(1, len(lines)), 1.0) * 0.35
         scored.append((score, amount_index, amount))
@@ -716,6 +747,9 @@ def extract_fields(lines: Iterable[OCRLine | dict[str, Any] | str], receipt_form
     detected_date = _extract_date(normalised_lines)
     merchant = _extract_merchant(normalised_lines)
     total = _extract_total(normalised_lines, receipt_format)
+    isolated_notice = None
+    if not total and (total := _isolated_amount(normalised_lines)):
+        isolated_notice = f"El total (S/ {total}) se tomó del único importe aislado de la boleta, sin etiqueta «TOTAL»; verifícalo."
     total, total_notice = _crosscheck_total(normalised_lines, total)
     warnings: list[str] = []
     if not detected_date:
@@ -724,6 +758,8 @@ def extract_fields(lines: Iterable[OCRLine | dict[str, Any] | str], receipt_form
         warnings.append("No se identificó con suficiente confianza el comercio; revisa el nombre manualmente.")
     if not total:
         warnings.append("No se identificó un total inequívoco; verifica que no sea subtotal, impuesto ni vuelto.")
+    if isolated_notice and total and not total_notice:
+        warnings.append(isolated_notice)
     if total_notice:
         warnings.append(total_notice)
     return ReceiptFields(detected_date, merchant, total, tuple(warnings))
