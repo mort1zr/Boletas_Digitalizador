@@ -90,22 +90,29 @@ def _boleta_sobre_mesa(angulo=8.0):
 
 def test_recorta_la_boleta_del_fondo_oscuro():
     ok, codificada = cv2.imencode(".jpg", _boleta_sobre_mesa())
-    resultado = o.preprocess_image(codificada.tobytes())
+    resultado = o.preprocess_image(codificada.tobytes(), crop_document=True)
     assert resultado.cropped
     alto, ancho = resultado.image.shape[:2]
     assert alto > ancho and ancho < 700           # quedó solo el papel, vertical
     assert abs(resultado.rotation_degrees) < 1.0   # y ya enderezado
 
 
-def test_recorte_se_puede_desactivar():
+def test_recorte_esta_desactivado_por_defecto():
     ok, codificada = cv2.imencode(".jpg", _boleta_sobre_mesa())
-    assert not o.preprocess_image(codificada.tobytes(), crop_document=False).cropped
+    assert not o.preprocess_image(codificada.tobytes()).cropped
 
 
 def test_imagen_solo_de_papel_no_se_recorta():
-    assert not o.preprocess_image(make_receipt_png(["TIENDA S.A.C.", "TOTAL S/ 45.90"])).cropped
+    assert not o.preprocess_image(make_receipt_png(["TIENDA S.A.C.", "TOTAL S/ 45.90"]), crop_document=True).cropped
 
 
 def test_imagen_uniforme_no_se_recorta():
     ok, codificada = cv2.imencode(".png", np.full((800, 600, 3), 200, np.uint8))
-    assert not o.preprocess_image(codificada.tobytes()).cropped
+    assert not o.preprocess_image(codificada.tobytes(), crop_document=True).cropped
+
+
+def test_realce_es_opcional_y_cambia_la_imagen():
+    imagen = make_receipt_png(["TIENDA S.A.C.", "TOTAL S/ 45.90"])
+    sin = o.preprocess_image(imagen).image
+    con = o.preprocess_image(imagen, enhance=True).image
+    assert sin.shape == con.shape and not np.array_equal(sin, con)

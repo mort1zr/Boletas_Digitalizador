@@ -8,8 +8,9 @@ Parámetros del pipeline documentados:
   maxLineGap=20); solo se aceptan líneas con |ángulo| <= 15 grados.
 - Rotación: interpolación INTER_CUBIC y bordes blancos (255), ampliando el lienzo
   para evitar recortar los bordes de la boleta.
-- Contraste: CLAHE clipLimit=2.0 y tileGridSize=(8, 8).
-- Reducción de ruido: bilateralFilter(d=5, sigmaColor=35, sigmaSpace=35).
+- Contraste (opcional, ``enhance=True``): CLAHE clipLimit=2.0 y tileGridSize=(8, 8).
+- Reducción de ruido (opcional): bilateralFilter(d=5, sigmaColor=35, sigmaSpace=35).
+- Recorte de la boleta (opcional, ``crop_document=True``): región clara más grande y perspectiva.
 - EasyOCR: idiomas español e inglés, gpu=False; readtext con detail=1,
   paragraph=False, min_size=8, text_threshold=0.6, low_text=0.3,
   link_threshold=0.4, contrast_ths=0.1, adjust_contrast=0.7 y mag_ratio=1.5.
@@ -227,8 +228,16 @@ def _crop_document(image: np.ndarray) -> np.ndarray | None:
     return cv2.warpPerspective(image, matrix, (out_width, out_height), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
 
 
-def preprocess_image(image_bytes: bytes, crop_document: bool = True) -> PreprocessedImage:
-    """Decodifica, corrige contraste/inclinación y devuelve PNG procesado sin alterar el original."""
+def preprocess_image(image_bytes: bytes, crop_document: bool = False, enhance: bool = False) -> PreprocessedImage:
+    """Decodifica, endereza y devuelve la imagen procesada para el OCR sin alterar el original.
+
+    ``crop_document`` recorta el papel del fondo y corrige la perspectiva; ``enhance`` aplica CLAHE y
+    filtro bilateral. Ambos están desactivados por defecto: en las 6 boletas reales del proyecto
+    (experimentos/resultados/ronda3_preprocesado.md) la imagen en gris sin realce dio más campos
+    correctos tanto con EasyOCR como con Tesseract, porque el realce amplifica el grano de la
+    impresión térmica y el recorte no fue consistente. Se conservan como opciones hasta validarlos
+    con una muestra mayor.
+    """
     if not image_bytes:
         raise ValueError("El archivo de imagen está vacío.")
     encoded = np.frombuffer(image_bytes, dtype=np.uint8)
@@ -260,9 +269,11 @@ def preprocess_image(image_bytes: bytes, crop_document: bool = True) -> Preproce
         # antihorario con ángulos positivos, así que rotar +rotation la endereza.
         gray = _rotate_expand(gray, rotation)
 
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    contrast = clahe.apply(gray)
-    denoised = cv2.bilateralFilter(contrast, d=5, sigmaColor=35, sigmaSpace=35)
+    if enhance:
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        denoised = cv2.bilateralFilter(clahe.apply(gray), d=5, sigmaColor=35, sigmaSpace=35)
+    else:
+        denoised = gray
     ok, png_encoded = cv2.imencode(".png", denoised, [cv2.IMWRITE_PNG_COMPRESSION, 3])
     if not ok:
         raise RuntimeError("No se pudo codificar la imagen procesada.")
