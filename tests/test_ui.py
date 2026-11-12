@@ -91,7 +91,7 @@ def test_login_shows_both_tabs_and_logout_returns_to_login(account):
     at = _login(_new_app())
     assert not at.exception
     assert at.session_state["authenticated"] is True
-    assert [tab.label for tab in at.tabs] == ["📷 Cargar y revisar", "📊 Consultar registros"]
+    assert [tab.label for tab in at.tabs] == ["📷 Cargar", "📊 Registros", "💬 Preguntar"]
     assert "Selecciona una imagen o toma una foto para comenzar." in _texts(at)
     logout = next(b for b in at.sidebar.button if b.label == "Cerrar sesión")
     logout.click().run()
@@ -180,3 +180,40 @@ def test_corrupt_archived_image_shows_warning_instead_of_crashing(account, seede
     assert not at.exception
     assert "No se pudo abrir la imagen archivada" in _texts(at)
     assert "Evidencia del registro ID" in _texts(at)
+
+
+def _preguntar(at, texto: str):
+    at.text_input(key="ask_question").input(texto)
+    next(b for b in at.button if b.label == "Preguntar").click().run()
+    return at
+
+
+def test_ask_tab_answers_with_code_computed_figures_and_shows_filters(account, seeded, monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    at = _preguntar(_login(_new_app()), "¿Cuánto gasté en Mercado en octubre de 2026?")
+    assert not at.exception
+    assert any("S/ 58.01" in s.value for s in at.success)  # 12.34 + 45.67 (Mercado Norte y Sur)
+    texto = _texts(at)
+    assert "Filtros aplicados" in texto and "Motor: reglas" in texto and "no las genera el modelo" in texto
+    assert "no se envía nada a Internet" in texto
+
+
+def test_ask_tab_explains_when_question_is_not_understood(account, seeded, monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    at = _preguntar(_login(_new_app()), "cuéntame un chiste")
+    assert not at.exception
+    assert any("No entendí la pregunta" in i.value for i in at.info)
+
+
+def test_ask_tab_discloses_when_claude_is_configured(account, seeded, monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-falsa")
+    at = _login(_new_app())
+    assert "nunca se envían tus boletas" in _texts(at)
+
+
+def test_login_screen_creates_the_account_from_environment_secrets(monkeypatch):
+    monkeypatch.setenv("APP_USER", "operador")
+    monkeypatch.setenv("APP_PASSWORD", TEST_PASSWORD)
+    at = _login(_new_app())
+    assert not at.exception
+    assert at.session_state["authenticated"] is True

@@ -1,10 +1,10 @@
 | Métrica | easyocr | tesseract |
 |---|---|---|
-| Exactitud fecha (%) | 83.3 | 95.8 |
-| Exactitud comercio (%) | 37.5 | 87.5 |
-| Exactitud total (%) | 37.5 | 95.8 |
-| Exactitud global de campos (%) | 52.8 | 93.1 |
-| Comprobantes 100 % correctos (%) | 12.5 | 83.3 |
-| CER medio del texto | 0.3653 | 0.3406 |
-| Tiempo medio por comprobante (s) | 13.53 | 0.61 |
-| Desviación estándar (s) | 1.16 | 0.09 |
+| Exactitud fecha (%) | 40.0 | 40.0 |
+| Exactitud comercio (%) | 0.0 | 0.0 |
+| Exactitud total (%) | 20.0 | 20.0 |
+| Exactitud global de campos (%) | 20.0 | 20.0 |
+| Comprobantes 100 % correctos (%) | 0.0 | 0.0 |
+| Comercio con similitud >= 0,90 (%) | 0.0 | 20.0 |
+| Tiempo medio por comprobante (s) | 9.66 | 0.94 |
+| Desviación estándar (s) | 0.64 | 0.31 |

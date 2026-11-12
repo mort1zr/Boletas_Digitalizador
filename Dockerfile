@@ -38,7 +38,8 @@ COPY *.py ./
 COPY .streamlit ./.streamlit
 
 # Usuario sin privilegios; /data es el volumen con la base, las imágenes y la cuenta.
-RUN useradd --create-home --uid 10001 app \
+# UID 1000: es el que usan Hugging Face Spaces y la mayoría de las plataformas de contenedores.
+RUN useradd --create-home --uid 1000 app \
     && mkdir -p /data \
     && chown -R app:app /data /opt/easyocr
 USER app

@@ -8,13 +8,17 @@ Para comparar motores de forma justa, EasyOCR y Tesseract reciben la MISMA image
 preprocesada y sus líneas pasan por las MISMAS reglas de extracción; solo cambia
 el motor de reconocimiento.
 
-Uso:
-  python experimentos/evaluar_ocr.py --motor easyocr
-  python experimentos/evaluar_ocr.py --motor tesseract
-  python experimentos/evaluar_ocr.py --motor ambos      # por defecto
+Los comprobantes son fotografías REALES y anonimizadas (datos/imagenes/). El campo
+«comercio» de referencia admite varias formas válidas separadas por «|» (razón social
+o nombre comercial impresos en el encabezado).
 
-Salida en experimentos/resultados/: un CSV por motor con el detalle por
-comprobante, y resumen.json / resumen.md con las métricas agregadas.
+Uso:
+  python experimentos/evaluar_ocr.py --motor ambos                 # ronda 2 (prototipo actual)
+  python experimentos/evaluar_ocr.py --motor ambos --sin-normalizacion \
+         --salida experimentos/resultados/ronda1_sin_normalizacion    # ronda 1
+  python experimentos/evaluar_ocr.py --calibrar-tesseract          # elige el modo psm
+
+Salida: un CSV por motor con el detalle por comprobante, y resumen.json / resumen.md.
 """
 from __future__ import annotations
 
@@ -22,11 +26,13 @@ import argparse
 import csv
 import json
 import platform
+import re
 import statistics
 import sys
 import time
 import unicodedata
 from datetime import datetime
+from difflib import SequenceMatcher
 from pathlib import Path
 
 RAIZ_EXPERIMENTOS = Path(__file__).resolve().parent
@@ -40,32 +46,14 @@ from ocr_service import OCRLine, extract_fields, preprocess_image  # noqa: E402
 
 DATOS = RAIZ_EXPERIMENTOS / "datos"
 RESULTADOS = RAIZ_EXPERIMENTOS / "resultados"
-# Regla de extracción aplicada a cada formato del conjunto sintético:
-# A y C tienen una etiqueta explícita de total; B es un ticket de caja.
-REGLA_POR_FORMATO = {"A": "A", "B": "B", "C": "A"}
-TESSERACT_CONFIG = "--oem 1 --psm 6"  # LSTM; bloque uniforme de texto (mejor modo para Tesseract en la calibración: psm 3 y 4 = 61,1 %, psm 6 = 93,1 %)
+TESSERACT_PSM = 6  # se fija con --calibrar-tesseract (el modo con mayor exactitud global)
+TESSERACT_CONFIG = f"--oem 1 --psm {TESSERACT_PSM}"
 
 
 def normalizar(texto: str) -> str:
     """Mayúsculas, sin tildes y sin espacios repetidos (comparación de comercio)."""
     sin_tildes = "".join(c for c in unicodedata.normalize("NFKD", texto) if not unicodedata.combining(c))
     return " ".join(sin_tildes.upper().split())
-
-
-def distancia_levenshtein(a: str, b: str) -> int:
-    previa = list(range(len(b) + 1))
-    for i, ca in enumerate(a, 1):
-        actual = [i]
-        for j, cb in enumerate(b, 1):
-            actual.append(min(previa[j] + 1, actual[j - 1] + 1, previa[j - 1] + (ca != cb)))
-        previa = actual
-    return previa[-1]
-
-
-def cer(reconocido: str, referencia: str) -> float:
-    """Character Error Rate sobre texto normalizado (sin tildes, mayúsculas, espacios simples)."""
-    ref = normalizar(referencia)
-    return distancia_levenshtein(normalizar(reconocido), ref) / max(1, len(ref))
 
 
 # --------------------------------------------------------------------------- motores
@@ -127,11 +115,13 @@ def evaluar(motor: str, referencias: list[dict]) -> tuple[list[dict], dict]:
         t1 = time.perf_counter()
         lineas = reconocer(pre.image)
         t2 = time.perf_counter()
-        campos = extract_fields(lineas, REGLA_POR_FORMATO[ref["formato"]])
+        campos = extract_fields(lineas, ref["regla"])
         t3 = time.perf_counter()
         texto = "\n".join(linea.text for linea in lineas)
         ok_fecha = campos.receipt_date == ref["fecha"]
-        ok_comercio = normalizar(campos.merchant) == normalizar(ref["comercio"])
+        alternativas = [normalizar(c) for c in ref["comercio"].split("|")]
+        ok_comercio = normalizar(campos.merchant) in alternativas
+        similitud = max(SequenceMatcher(None, normalizar(campos.merchant), a).ratio() for a in alternativas)
         ok_total = campos.total == ref["total"]
         filas.append({
             "id": ref["id"], "formato": ref["formato"], "condicion": ref["condicion"],
@@ -139,7 +129,7 @@ def evaluar(motor: str, referencias: list[dict]) -> tuple[list[dict], dict]:
             "comercio_ref": ref["comercio"], "comercio_ocr": campos.merchant, "comercio_ok": int(ok_comercio),
             "total_ref": ref["total"], "total_ocr": campos.total, "total_ok": int(ok_total),
             "comprobante_ok": int(ok_fecha and ok_comercio and ok_total),
-            "cer_texto": round(cer(" ".join(texto.split()), ref["texto_completo"].replace(" | ", " ")), 4),
+            "similitud_comercio": round(similitud, 3),
             "rotacion_estimada": round(pre.rotation_degrees, 2),
             "t_preproceso_s": round(t1 - t0, 3), "t_ocr_s": round(t2 - t1, 3),
             "t_extraccion_s": round(t3 - t2, 4), "t_total_s": round(t3 - t0, 3),
@@ -171,7 +161,8 @@ def resumir(filas: list[dict], extra: dict, motor: str) -> dict:
         "exactitud_total": pct(f["total_ok"] for f in filas),
         "exactitud_global_campos": round(100 * campos_ok / (3 * len(filas)), 1),
         "exactitud_por_comprobante": pct(f["comprobante_ok"] for f in filas),
-        "cer_medio": round(statistics.mean(f["cer_texto"] for f in filas), 4),
+        "similitud_comercio_media": round(statistics.mean(f["similitud_comercio"] for f in filas), 3),
+        "comercio_aprox_090": pct(f["similitud_comercio"] >= 0.9 for f in filas),
         "t_medio_s": round(statistics.mean(tiempos), 2), "t_desv_s": round(statistics.pstdev(tiempos), 2),
         "t_min_s": round(min(tiempos), 2), "t_max_s": round(max(tiempos), 2),
         "t_ocr_medio_s": round(statistics.mean(f["t_ocr_s"] for f in filas), 2),
@@ -186,19 +177,35 @@ def tabla_md(resumenes: list[dict]) -> str:
               "|---|" + "---|" * len(resumenes)]
     for clave, nombre in [("exactitud_fecha", "Exactitud fecha (%)"), ("exactitud_comercio", "Exactitud comercio (%)"),
                           ("exactitud_total", "Exactitud total (%)"), ("exactitud_global_campos", "Exactitud global de campos (%)"),
-                          ("exactitud_por_comprobante", "Comprobantes 100 % correctos (%)"), ("cer_medio", "CER medio del texto"),
+                          ("exactitud_por_comprobante", "Comprobantes 100 % correctos (%)"), ("comercio_aprox_090", "Comercio con similitud >= 0,90 (%)"),
                           ("t_medio_s", "Tiempo medio por comprobante (s)"), ("t_desv_s", "Desviación estándar (s)")]:
         lineas.append(f"| {nombre} | " + " | ".join(str(r[clave]) for r in resumenes) + " |")
     return "\n".join(lineas)
 
 
 def main() -> None:
+    global RESULTADOS, TESSERACT_CONFIG
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--motor", choices=["easyocr", "tesseract", "ambos"], default="ambos")
+    parser.add_argument("--sin-normalizacion", action="store_true",
+                        help="desactiva ocr_service.normalise_ocr_spacing (reproduce la ronda 1)")
+    parser.add_argument("--salida", type=Path, default=RESULTADOS)
+    parser.add_argument("--calibrar-tesseract", action="store_true", help="compara los modos psm 3, 4 y 6 de Tesseract")
     args = parser.parse_args()
+    RESULTADOS = args.salida
     with (DATOS / "referencia.csv").open(encoding="utf-8") as fh:
         referencias = list(csv.DictReader(fh))
-    RESULTADOS.mkdir(exist_ok=True)
+    if args.sin_normalizacion:
+        ocr_service.normalise_ocr_spacing = lambda texto: re.sub(r"\s+", " ", texto).strip()
+    if args.calibrar_tesseract:
+        for psm in (3, 4, 6):
+            TESSERACT_CONFIG = f"--oem 1 --psm {psm}"
+            filas, _ = evaluar("tesseract", referencias)
+            r = resumir(filas, {}, "tesseract")
+            print(f"psm {psm}: global {r['exactitud_global_campos']} % | fecha {r['exactitud_fecha']} | "
+                  f"comercio {r['exactitud_comercio']} | total {r['exactitud_total']}")
+        return
+    RESULTADOS.mkdir(parents=True, exist_ok=True)
     motores = ["easyocr", "tesseract"] if args.motor == "ambos" else [args.motor]
     resumenes = []
     for motor in motores:

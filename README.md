@@ -10,6 +10,10 @@ Prototipo local en Python con Streamlit, OpenCV, EasyOCR y SQLite. La herramient
 - **HU-05 / HU-06:** formulario editable, validaciones para fecha, comercio y total positivo, confirmación explícita y guardado persistente en SQLite. La acción de guardado es idempotente dentro de la misma carga/sesión.
 - **HU-08 / HU-09 / HU-10:** consulta ordenada por fecha descendente, filtros combinables por rango inclusivo y comercio, exportación de las filas filtradas a CSV con total a dos decimales.
 - **HU-13:** selección de una fila de la tabla para abrir la imagen, el texto original de EasyOCR, los candidatos propuestos y los valores confirmados.
+- **Privacidad:** las imágenes y el texto OCR se **cifran en reposo** (Fernet) y, antes de guardar el texto, se **enmascaran** el DNI, los números de tarjeta y los RUC de persona natural (ver «Privacidad y cifrado»).
+- **Preguntas en lenguaje natural (pestaña 💬 Preguntar):** «¿Cuánto gasté en Makro durante octubre?». La pregunta se traduce a un plan de consulta y **las cifras las calcula el código** sobre tus registros, no un modelo; con `ANTHROPIC_API_KEY` se usa Claude para interpretar la pregunta (solo viaja el texto de la pregunta) y, sin ella o si falla, reglas locales.
+- **Interfaz responsive:** verificada a 390 px (móvil), 768 px (tablet) y escritorio, sin desbordes y con controles táctiles de al menos 44 px.
+- **Despliegue:** contenedor Docker listo para Hugging Face Spaces (ver `deploy/DESPLIEGUE.md`).
 
 ## Requisitos
 
@@ -48,11 +52,38 @@ El primer procesamiento puede tardar más mientras EasyOCR descarga los modelos.
 
 ## Captura con la cámara
 
-En la pestaña **Cargar y revisar**, elige **📷 Usar cámara**: el navegador muestra la vista en vivo de la cámara y el botón *Take Photo* captura la imagen, que sigue el mismo flujo que un archivo subido (preprocesado, OCR, revisión, confirmación y guardado). La foto original se archiva como JPG.
+En la pestaña **📷 Cargar**, elige **📷 Usar cámara**: el navegador muestra la vista en vivo de la cámara y el botón *Take Photo* captura la imagen, que sigue el mismo flujo que un archivo subido (preprocesado, OCR, revisión, confirmación y guardado). La foto original se archiva como JPG.
 
 - El navegador pide permiso para usar la cámara y solo lo concede en `localhost` o con HTTPS. Si la app se abre desde otro equipo de la red por `http://`, la cámara no estará disponible (subir archivo sí).
 - Se solicita 1080p cuando la versión de Streamlit lo permite; la resolución real depende de la cámara. Para mejores resultados: boleta plana, buena iluminación, fondo oscuro y que ocupe la mayor parte del encuadre.
 - El OCR tarda varios segundos por imagen, por lo que se procesa la foto capturada, no el video continuo.
+
+## Privacidad y cifrado
+
+| Dato | Tratamiento |
+|---|---|
+| Imágenes (original y procesada) | Cifradas en disco con Fernet (AES-128 + HMAC). |
+| Texto OCR completo | Se enmascaran DNI, tarjetas (válidas según Luhn) y RUC `10…` de persona natural, y luego se cifra en SQLite. |
+| Fecha, comercio y total | En claro: las consultas, el CSV y las preguntas los necesitan. |
+| Contraseña | Solo su hash PBKDF2-HMAC-SHA256 con sal. |
+
+La clave se toma de la variable `RECEIPT_ENCRYPTION_KEY`; si no existe, se crea `data/.secret.key` con permisos 0600. La
+variable es la opción recomendada porque deja la clave fuera de la carpeta de datos. **Si se pierde la clave, los datos
+cifrados no se recuperan.** Los registros anteriores al cifrado siguen leyéndose. Genera una clave con:
+
+```bash
+python -c "import crypto_service; print(crypto_service.generate_key())"
+```
+
+### Variables de entorno
+
+| Variable | Uso |
+|---|---|
+| `RECEIPT_DATA_DIR` | Carpeta de datos (por defecto `data/`). |
+| `RECEIPT_ENCRYPTION_KEY` | Clave de cifrado (recomendada). |
+| `APP_USER` / `APP_PASSWORD` | Crean la cuenta inicial si no existe (para despliegues sin terminal). |
+| `ANTHROPIC_API_KEY` | Opcional: interpreta las preguntas con Claude. |
+| `NL_QUERY_MODEL` | Opcional: modelo de Claude para las preguntas (por defecto `claude-opus-5-5`). |
 
 ## Ejecución con Docker
 
@@ -70,6 +101,8 @@ docker compose up -d                                 # abre http://localhost:850
   - `PRELOAD_MODELS=0`: no descarga los modelos al construir (se descargan en el primer uso; requiere Internet en el contenedor).
   - `TORCH_INDEX_URL`: índice alternativo de PyTorch (por defecto, la variante CPU de `download.pytorch.org`).
   - `BASE_IMAGE`: imagen base alternativa (por ejemplo, `public.ecr.aws/docker/library/python:3.12-slim` si Docker Hub limita las descargas).
+- El contenedor usa el UID 1000. Si ya tenías un volumen creado con una versión anterior (UID 10001), corrige sus permisos con `docker compose run --rm --user root app chown -R 1000:1000 /data` o recrea el volumen.
+- Para conservar los datos entre reinicios en un servidor, define `RECEIPT_ENCRYPTION_KEY` (si no, la clave se guarda en el mismo volumen).
 - La autenticación es local y de demostración: si expones el puerto fuera de tu equipo, colócalo detrás de un proxy con HTTPS.
 
 ## Integración continua
@@ -86,6 +119,9 @@ docker compose up -d                                 # abre http://localhost:850
  ├── main.py             # Entrada de Streamlit
  ├── ui.py               # Login, carga/revisión, dashboard y evidencia (solo presentación)
  ├── receipt_service.py  # Validación, guardado de la revisión y exportación CSV
+ ├── privacy.py          # Enmascarado de DNI, tarjetas y RUC de persona natural
+ ├── crypto_service.py   # Cifrado en reposo de imágenes y texto OCR (Fernet)
+ ├── nl_query.py         # Preguntas en lenguaje natural: reglas + Claude opcional
  ├── ocr_service.py      # OpenCV, EasyOCR y reglas de extracción A/B
  ├── repository.py       # SQLite y persistencia atómica de imágenes
  ├── auth_service.py     # PBKDF2, verificación y lectura de la cuenta
@@ -101,11 +137,15 @@ docker compose up -d                                 # abre http://localhost:850
  │   ├── test_auth_service.py    # Hash, login (incluye usuarios con tildes/ñ), archivos corruptos
  │   ├── test_create_user.py     # Alta interactiva de la cuenta
  │   ├── test_app_config.py      # Rutas y límite de carga
- │   ├── test_ui.py              # Interfaz Streamlit con AppTest (login, filtros, evidencia)
+ │   ├── test_privacy.py         # Enmascarado de datos personales
+ │   ├── test_crypto_service.py  # Cifrado, claves, registros antiguos y clave perdida
+ │   ├── test_nl_query.py        # Reglas, ejecución determinista y Claude simulado
+ │   ├── test_ui.py              # Interfaz Streamlit con AppTest (login, filtros, evidencia, preguntas)
  │   └── test_ui_capture.py      # Flujo completo archivo/cámara → OCR → revisión → guardado
  ├── .github/workflows/
  │   └── ci.yml          # Pruebas + construcción y arranque de la imagen Docker
  ├── Dockerfile          # Imagen solo-CPU con modelos EasyOCR precargados
+ ├── deploy/             # Despliegue en Hugging Face Spaces (guía y script de publicación)
  ├── docker-compose.yml  # Servicio con volumen persistente para /data
  ├── requirements.txt
  └── data/               # Se crea automáticamente; excluida de Git
@@ -159,7 +199,7 @@ Las pruebas se ejecutan sobre una carpeta de datos temporal (nunca tocan `data/`
 
 ## Experimentos del Avance 2
 
-La carpeta `experimentos/` contiene el conjunto de 24 comprobantes **sintéticos**, sus valores de referencia, los scripts que comparan EasyOCR y Tesseract con el pipeline real y los resultados obtenidos. Las instrucciones para reproducirlos están en `experimentos/README.md`.
+La carpeta `experimentos/` contiene una muestra de 5 boletas **reales anonimizadas**, sus valores de referencia, los scripts que comparan EasyOCR y Tesseract con el pipeline real y los resultados obtenidos. Las instrucciones para reproducirlos están en `experimentos/README.md`.
 
 ## Limitaciones conocidas
 

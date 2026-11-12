@@ -83,9 +83,9 @@ def test_full_save_flow_keeps_proposed_and_confirmed_values(repository: ReceiptR
     assert (record["receipt_date"], record["merchant"], record["total_cents"]) == ("2026-10-22", "Tienda Corregida", 12000)
     assert (record["proposed_date"], record["proposed_merchant"], record["proposed_total_cents"]) == ("2026-10-21", "TIENDA DEMO", 11800)
     assert record["original_ocr_text"].startswith("TIENDA DEMO")
-    assert repository.resolve_image_path(record["image_path"]).read_bytes() == b"original-jpg"
+    assert repository.read_image(record["image_path"]) == b"original-jpg"
     assert record["image_path"].endswith(".jpeg")
-    assert repository.resolve_image_path(record["processed_image_path"]).read_bytes() == b"\x89PNG-procesada"
+    assert repository.read_image(record["processed_image_path"]) == b"\x89PNG-procesada"
 
 
 def test_missing_ocr_total_is_stored_as_null(repository: ReceiptRepository):
@@ -105,7 +105,7 @@ def test_duplicate_save_does_not_touch_existing_evidence(repository: ReceiptRepo
     assert second.inserted is False
     record = repository.get_receipt(first.receipt_id)
     # Antes del arreglo, el duplicado sobrescribía y luego BORRABA estas imágenes.
-    assert repository.resolve_image_path(record["image_path"]).read_bytes() == b"primera"
+    assert repository.read_image(record["image_path"]) == b"primera"
     assert repository.resolve_image_path(record["processed_image_path"]).is_file()
     assert len(repository.list_receipts()) == 1
 

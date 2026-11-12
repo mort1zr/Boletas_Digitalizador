@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Iterable, Mapping
 
 from ocr_service import parse_amount
+from privacy import mask_personal_data
 from repository import ReceiptRepository
 
 # Caracteres con los que una hoja de cálculo puede interpretar una celda como fórmula.
@@ -102,7 +103,8 @@ def save_reviewed_receipt(
         "total_cents": reviewed.total_cents,
         "image_path": image_paths[0],
         "processed_image_path": image_paths[1],
-        "original_ocr_text": ocr_result.get("raw_text", ""),
+        # Minimización de datos: DNI, tarjetas y RUC de persona natural no se almacenan en claro.
+        "original_ocr_text": mask_personal_data(ocr_result.get("raw_text", "")),
         "proposed_date": fields.get("receipt_date", ""),
         "proposed_merchant": fields.get("merchant", ""),
         "proposed_total_cents": proposed_total,

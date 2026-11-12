@@ -5,3 +5,7 @@ maxUploadSize = 10
 
 [browser]
 gatherUsageStats = false
+
+[client]
+# Oculta el botón «Deploy» y el menú de desarrollo de Streamlit en la app publicada.
+toolbarMode = "minimal"

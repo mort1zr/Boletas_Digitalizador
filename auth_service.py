@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import os
 import secrets
 import unicodedata
 from pathlib import Path
@@ -84,3 +85,19 @@ def verify_login(username: str, password: str, destination: Path | None = None) 
     except (ValueError, TypeError):
         return False
     return hmac.compare_digest(candidate.encode("ascii"), str(record["password_hash"]).encode("utf-8"))
+
+
+def bootstrap_user_from_env(destination: Path | None = None) -> bool:
+    """Crea la cuenta inicial desde ``APP_USER`` y ``APP_PASSWORD`` si todavía no existe ninguna.
+
+    Sirve para despliegues sin terminal interactiva (Hugging Face Spaces, Render, etc.), donde no se
+    puede ejecutar ``create_user.py``. Las variables deben guardarse como secretos del servicio; la
+    contraseña no se escribe en disco, solo su hash PBKDF2. Devuelve ``True`` si creó la cuenta.
+    Con una cuenta ya existente no hace nada, de modo que cambiar la variable no pisa la contraseña.
+    """
+    usuario = os.getenv("APP_USER", "").strip()
+    clave = os.getenv("APP_PASSWORD", "")
+    if not usuario or not clave or load_user(destination) is not None:
+        return False
+    write_user(usuario, clave, destination)  # lanza ValueError si no cumple los mínimos
+    return True

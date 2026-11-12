@@ -80,3 +80,27 @@ def test_default_path_follows_configured_data_dir():
     write_user("operador", "Local-Password-2026!")
     assert app_config.USERS_PATH.is_file()
     assert verify_login("operador", "Local-Password-2026!")
+
+
+def test_bootstrap_user_from_environment(monkeypatch):
+    from auth_service import bootstrap_user_from_env
+
+    assert bootstrap_user_from_env() is False  # sin variables no hace nada
+    monkeypatch.setenv("APP_USER", "operador")
+    monkeypatch.setenv("APP_PASSWORD", "Clave-Segura-2026")
+    assert bootstrap_user_from_env() is True
+    assert verify_login("operador", "Clave-Segura-2026")
+    monkeypatch.setenv("APP_PASSWORD", "Otra-Clave-Distinta-1")
+    assert bootstrap_user_from_env() is False  # no pisa una cuenta existente
+    assert verify_login("operador", "Clave-Segura-2026")
+    assert "Clave-Segura-2026" not in app_config.USERS_PATH.read_text(encoding="utf-8")
+
+
+def test_bootstrap_rejects_weak_password(monkeypatch):
+    from auth_service import bootstrap_user_from_env
+
+    monkeypatch.setenv("APP_USER", "operador")
+    monkeypatch.setenv("APP_PASSWORD", "corta")
+    with pytest.raises(ValueError):
+        bootstrap_user_from_env()
+    assert load_user() is None
