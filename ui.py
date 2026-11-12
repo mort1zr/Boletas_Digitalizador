@@ -14,6 +14,7 @@ import streamlit as st
 
 import app_config
 import crypto_service
+import image_io
 import nl_query
 import auth_service
 from auth_service import load_user, verify_login
@@ -162,18 +163,27 @@ def _select_image() -> SelectedImage | None:
             return None
         return SelectedImage(photo.getvalue(), "camara.jpg", "Foto tomada con la cámara")
     uploaded = st.file_uploader(
-        "Imagen de la boleta (máximo 10 MB)", type=["jpg", "jpeg", "png"],
+        "Foto de la boleta (máximo 10 MB)", type=["jpg", "jpeg", "png", "heic", "heif"],
         accept_multiple_files=False, key="receipt_uploader",
     )
     if uploaded is None:
         return None
-    return SelectedImage(uploaded.getvalue(), uploaded.name, uploaded.name)
+    content = uploaded.getvalue()
+    if len(content) > app_config.MAX_UPLOAD_BYTES:
+        return SelectedImage(content, uploaded.name, uploaded.name)  # el aviso de tamaño lo da quien llama
+    try:
+        content, name = image_io.to_supported_image(content, uploaded.name)
+    except ValueError as exc:
+        st.error(str(exc))
+        return None
+    label = uploaded.name if name == uploaded.name else f"{uploaded.name} (convertida a JPG)"
+    return SelectedImage(content, name, label)
 
 
 def _render_upload_tab(repository: ReceiptRepository) -> None:
     st.subheader("Digitalizar una boleta")
     st.write(
-        "Sube una fotografía JPG o PNG, o tómala con la cámara. "
+        "Sube la foto tal como la toma tu celular (JPG, PNG o HEIC de iPhone y Samsung), o tómala con la cámara. "
         "La imagen original se conserva; el OCR usa una copia procesada."
     )
     selected = _select_image()
@@ -197,7 +207,7 @@ def _render_upload_tab(repository: ReceiptRepository) -> None:
     # Verifica que el archivo sea realmente una imagen decodificable antes de mostrarlo.
     decoded = cv2.imdecode(np.frombuffer(image_bytes, dtype=np.uint8), cv2.IMREAD_COLOR)
     if decoded is None or decoded.size == 0:
-        st.error("El archivo no contiene una imagen JPG/PNG válida o está dañado. Prueba con otro archivo.")
+        st.error("El archivo no contiene una imagen válida o está dañado. Prueba con otro archivo.")
         return
 
     upload_hash = hashlib.sha256(image_bytes).hexdigest()

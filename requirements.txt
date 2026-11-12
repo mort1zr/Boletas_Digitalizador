@@ -4,6 +4,7 @@ streamlit>=1.49.0,<2.0
 opencv-python-headless>=4.9.0
 numpy>=1.26.0
 Pillow>=10.0.0
+pillow-heif>=0.18.0  # fotos HEIC/HEIF de iPhone y Samsung
 easyocr>=1.7.1
 pytest>=8.0.0
 cryptography>=43.0.0   # cifrado en reposo (Fernet)
