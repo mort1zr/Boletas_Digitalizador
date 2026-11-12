@@ -128,7 +128,7 @@ def test_camera_capture_full_flow_saves_confirmed_record(reader):
     assert (record["receipt_date"], record["merchant"], record["total_cents"]) == ("2026-10-21", "Bodega San Juan", 4720)
     assert record["proposed_merchant"] == "BODEGA SAN JUAN"
     assert record["image_path"].endswith("_original.jpg")
-    stored = ReceiptRepository().resolve_image_path(record["image_path"]).read_bytes()
+    stored = ReceiptRepository().read_image(record["image_path"])
     assert stored == _photo()  # la foto original se archiva sin modificar
 
     # Volver a pulsar Guardar no crea otra fila.

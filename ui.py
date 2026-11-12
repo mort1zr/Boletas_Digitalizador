@@ -13,6 +13,9 @@ import numpy as np
 import streamlit as st
 
 import app_config
+import crypto_service
+import nl_query
+import auth_service
 from auth_service import load_user, verify_login
 from ocr_service import process_receipt
 from receipt_service import csv_bytes, format_total, save_reviewed_receipt, validate_review
@@ -29,6 +32,30 @@ def get_repository(database_path: str, images_dir: str) -> ReceiptRepository:
 
 def _repository() -> ReceiptRepository:
     return get_repository(str(app_config.DATABASE_PATH), str(app_config.IMAGES_DIR))
+
+
+# Ajustes para pantallas pequeñas. Streamlit ya apila las columnas en móvil; aquí se reducen los
+# márgenes y el título, se agrandan los controles táctiles (≥ 44 px, guía WCAG 2.5.5) y se
+# evita que tablas e imágenes ensanchen la página.
+_CSS_RESPONSIVE = """
+<style>
+html, body { overflow-x: hidden; }
+[data-testid="stImage"] img, [data-testid="stCameraInput"] video { max-width: 100%; height: auto; }
+[data-testid="stCameraInput"] video { border-radius: .5rem; }
+.stButton > button, .stDownloadButton > button, [data-testid="stFormSubmitButton"] > button { min-height: 2.75rem; }
+@media (max-width: 640px) {
+  .block-container { padding: 1rem .75rem 4rem !important; }
+  h1 { font-size: 1.55rem !important; line-height: 1.2 !important; padding-bottom: .25rem !important; }
+  h2, h3, h4 { font-size: 1.2rem !important; line-height: 1.3 !important; }
+  [data-testid="stTabs"] [role="tab"] { padding: .6rem .7rem; min-height: 2.75rem; }
+  [data-testid="stRadio"] label { min-height: 2.5rem; align-items: center; }
+  [data-baseweb="input"] input, [data-baseweb="select"] > div { min-height: 2.75rem; font-size: 1rem; }
+  [data-testid="stFileUploaderDropzone"] { padding: .75rem; }
+  [data-testid="stDataFrame"] { max-width: 100%; }
+  [data-testid="stCaptionContainer"] { font-size: .85rem; }
+}
+</style>
+"""
 
 
 def _initialise_state() -> None:
@@ -64,6 +91,10 @@ def _login_screen() -> None:
     st.title("Digitalizador inteligente de boletas")
     st.caption("Prototipo local · Python · OpenCV · EasyOCR · SQLite")
     st.subheader("Iniciar sesión")
+    try:
+        auth_service.bootstrap_user_from_env()
+    except ValueError as exc:
+        st.error(f"La cuenta definida en APP_USER/APP_PASSWORD no es válida: {exc}")
     if load_user() is None:
         st.warning("Todavía no existe una cuenta local. Cierra esta app y ejecuta `python create_user.py` en la terminal del proyecto.")
         st.code("python create_user.py\nstreamlit run main.py", language="powershell")
@@ -269,14 +300,19 @@ def _render_upload_tab(repository: ReceiptRepository) -> None:
         st.text(result.get("raw_text", "") or "(Sin texto reconocido)")
 
 
-def _show_archived_image(path: Any, **kwargs: Any) -> bool:
-    """Muestra una imagen archivada; si falta o está dañada, avisa sin romper la página."""
-    if path is None or not path.is_file():
+def _show_archived_image(repository: ReceiptRepository, stored: str | None, **kwargs: Any) -> bool:
+    """Muestra una imagen archivada (descifrándola); si falta o está dañada, avisa sin romper la página."""
+    try:
+        contenido = repository.read_image(stored)
+    except crypto_service.DecryptionError as exc:
+        st.warning(f"No se pudo abrir la imagen archivada: {exc}")
+        return True
+    if contenido is None:
         return False
     try:
-        st.image(str(path), **kwargs)
+        st.image(contenido, **kwargs)
     except Exception:
-        st.warning(f"No se pudo abrir la imagen archivada ({path.name}); puede estar dañada.")
+        st.warning("No se pudo abrir la imagen archivada; puede estar dañada.")
     return True
 
 
@@ -291,13 +327,12 @@ def _render_evidence(repository: ReceiptRepository, selected_id: int | None) -> 
     st.markdown(f"#### Evidencia del registro ID {record['id']}")
     image_col, details_col = st.columns([1, 1])
     with image_col:
-        image_path = repository.resolve_image_path(record["image_path"])
-        if not _show_archived_image(image_path, caption="Boleta original archivada", width="stretch"):
+        if not _show_archived_image(repository, record["image_path"], caption="Boleta original archivada", width="stretch"):
             st.warning("La imagen original ya no está disponible localmente. Los datos del registro siguen accesibles.")
-        processed_path = repository.resolve_image_path(record.get("processed_image_path"))
-        if processed_path is not None and processed_path.is_file():
+        procesada = repository.resolve_image_path(record.get("processed_image_path"))
+        if procesada is not None and procesada.is_file():
             with st.expander("Ver imagen procesada usada por el OCR"):
-                _show_archived_image(processed_path, width="stretch")
+                _show_archived_image(repository, record.get("processed_image_path"), width="stretch")
     with details_col:
         st.markdown("**Datos propuestos originalmente por OCR**")
         st.write(f"Fecha: {record.get('proposed_date') or 'No detectada'}")
@@ -309,8 +344,11 @@ def _render_evidence(repository: ReceiptRepository, selected_id: int | None) -> 
         st.write(f"Comercio: {record['merchant']}")
         st.write(f"Total: {format_total(record['total_cents'])}")
         st.caption(f"Formato {record['receipt_format']} · registrado {record['created_at']}")
-    with st.expander("Texto íntegro reconocido por EasyOCR"):
-        st.text(record.get("original_ocr_text") or "(Sin texto OCR almacenado)")
+    with st.expander("Texto reconocido por EasyOCR (datos personales enmascarados)"):
+        if record.get("ocr_error"):
+            st.warning(record["ocr_error"])
+        else:
+            st.text(record.get("original_ocr_text") or "(Sin texto OCR almacenado)")
 
 
 def _render_dashboard_tab(repository: ReceiptRepository) -> None:
@@ -388,8 +426,39 @@ def _render_dashboard_tab(repository: ReceiptRepository) -> None:
         _render_evidence(repository, selected_for_evidence)
 
 
+def _render_ask_tab(repository: ReceiptRepository) -> None:
+    st.subheader("Pregunta sobre tus gastos")
+    claude = nl_query.claude_disponible()
+    st.caption(
+        "Escribe una pregunta en español, por ejemplo: «¿Cuánto gasté en Makro durante octubre?», "
+        "«¿Cuántas boletas tengo este mes?» o «¿Cuál fue mi compra más cara?». "
+        + ("La pregunta se interpreta con Claude y, si no responde, con reglas; nunca se envían tus boletas, solo el texto de la pregunta."
+           if claude else "La pregunta se interpreta con reglas locales; no se envía nada a Internet.")
+    )
+    with st.form("ask_form", clear_on_submit=False):
+        pregunta = st.text_input("Tu pregunta", key="ask_question", placeholder="¿Cuánto gasté en Makro durante octubre?")
+        enviada = st.form_submit_button("Preguntar", type="primary", width="stretch")
+    if not enviada:
+        return
+    respuesta = nl_query.responder(repository, pregunta)
+    if not respuesta.entendida:
+        st.info(respuesta.texto)
+        return
+    st.success(respuesta.texto)
+    st.caption(f"Filtros aplicados: {respuesta.filtros} · Motor: {respuesta.motor} · "
+               "Las cifras se calculan con tus registros, no las genera el modelo.")
+    if respuesta.filas:
+        with st.expander(f"Ver las {len(respuesta.filas)} boleta(s) consideradas"):
+            st.dataframe(
+                [{"ID": f["id"], "Fecha": f["receipt_date"], "Comercio": f["merchant"], "Total": format_total(f["total_cents"])}
+                 for f in respuesta.filas],
+                width="stretch", hide_index=True,
+            )
+
+
 def render_app() -> None:
-    st.set_page_config(page_title="Digitalizador de boletas", page_icon="🧾", layout="wide")
+    st.set_page_config(page_title="Digitalizador de boletas", page_icon="🧾", layout="wide", initial_sidebar_state="collapsed")
+    st.markdown(_CSS_RESPONSIVE, unsafe_allow_html=True)
     _initialise_state()
     if not st.session_state["authenticated"]:
         _login_screen()
@@ -408,8 +477,10 @@ def render_app() -> None:
             st.rerun()
         st.divider()
         st.caption("OCR asistido: revisa los campos y confirma antes de guardar.")
-    upload_tab, dashboard_tab = st.tabs(["📷 Cargar y revisar", "📊 Consultar registros"])
+    upload_tab, dashboard_tab, ask_tab = st.tabs(["📷 Cargar", "📊 Registros", "💬 Preguntar"])
     with upload_tab:
         _render_upload_tab(repository)
     with dashboard_tab:
         _render_dashboard_tab(repository)
+    with ask_tab:
+        _render_ask_tab(repository)

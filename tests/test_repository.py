@@ -48,8 +48,8 @@ def repository(tmp_path: Path) -> ReceiptRepository:
 def test_images_are_stored_with_relative_paths(repository: ReceiptRepository):
     original, processed = repository.persist_images("abc-123", b"jpg-bytes", b"png-bytes", ".JPG")
     assert (original, processed) == ("abc-123_original.jpg", "abc-123_processed.png")
-    assert repository.resolve_image_path(original).read_bytes() == b"jpg-bytes"
-    assert repository.resolve_image_path(processed).read_bytes() == b"png-bytes"
+    assert repository.read_image(original) == b"jpg-bytes"
+    assert repository.read_image(processed) == b"png-bytes"
     assert not list(repository.images_dir.glob(".*.tmp"))  # sin temporales huérfanos
 
 
@@ -65,7 +65,7 @@ def test_database_survives_moving_the_data_folder(tmp_path: Path):
     (tmp_path / "a").rename(tmp_path / "b")
     moved = ReceiptRepository(tmp_path / "b" / "db.sqlite3", tmp_path / "b" / "images")
     row = moved.list_receipts()[0]
-    assert moved.resolve_image_path(row["image_path"]).read_bytes() == b"orig"
+    assert moved.read_image(row["image_path"]) == b"orig"
 
 
 def test_legacy_absolute_paths_still_resolve(repository: ReceiptRepository, tmp_path: Path):

@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Iterator
 
 import app_config
+import crypto_service
 
 
 class RepositoryError(RuntimeError):
@@ -72,7 +73,8 @@ class ReceiptRepository:
 
         Devuelve rutas relativas a la carpeta de imágenes para que la base de
         datos siga siendo válida si se mueve la carpeta de datos (o se monta en
-        otra ruta dentro de un contenedor).
+        otra ruta dentro de un contenedor). Las imágenes se cifran antes de escribirse
+        (ver ``crypto_service``); para leerlas usa ``read_image``.
         """
         safe_id = re_safe_id(source_id)
         extension = original_extension.lower().lstrip(".")
@@ -80,9 +82,9 @@ class ReceiptRepository:
             extension = "jpg"
         original_path = self.images_dir / f"{safe_id}_original.{extension}"
         processed_path = self.images_dir / f"{safe_id}_processed.png"
-        self._atomic_write(original_path, original_bytes)
+        self._atomic_write(original_path, crypto_service.encrypt_bytes(original_bytes))
         try:
-            self._atomic_write(processed_path, processed_png)
+            self._atomic_write(processed_path, crypto_service.encrypt_bytes(processed_png))
         except Exception:
             original_path.unlink(missing_ok=True)
             raise
@@ -105,6 +107,17 @@ class ReceiptRepository:
         if not resolved.is_relative_to(images_root):
             return None
         return resolved
+
+    def read_image(self, stored: str | None) -> bytes | None:
+        """Lee y descifra una imagen archivada; ``None`` si el archivo no existe.
+
+        Los archivos anteriores al cifrado (texto plano) se devuelven tal cual. Lanza
+        ``crypto_service.DecryptionError`` si el archivo está cifrado y no se puede descifrar.
+        """
+        path = self.resolve_image_path(stored)
+        if path is None or not path.is_file():
+            return None
+        return crypto_service.decrypt_bytes(path.read_bytes())
 
     @staticmethod
     def _atomic_write(path: Path, payload: bytes) -> None:
@@ -144,7 +157,7 @@ class ReceiptRepository:
                         record["receipt_date"], record["merchant"], int(record["total_cents"]),
                         record.get("created_at") or datetime.now().astimezone().isoformat(timespec="seconds"),
                         record["image_path"], record.get("processed_image_path"),
-                        record.get("original_ocr_text", ""), record.get("proposed_date") or None,
+                        crypto_service.encrypt_text(record.get("original_ocr_text", "")), record.get("proposed_date") or None,
                         record.get("proposed_merchant") or None,
                         int(record["proposed_total_cents"]) if record.get("proposed_total_cents") is not None else None,
                         record["receipt_format"], record["source_id"],
@@ -187,7 +200,7 @@ class ReceiptRepository:
         with self._connect() as connection:
             rows = connection.execute(
                 f"SELECT id, receipt_date, merchant, total_cents, created_at, image_path, processed_image_path, "
-                f"original_ocr_text, proposed_date, proposed_merchant, proposed_total_cents, receipt_format, source_id "
+                f"proposed_date, proposed_merchant, proposed_total_cents, receipt_format, source_id "
                 f"FROM receipts {where} ORDER BY receipt_date DESC, id DESC",
                 params,
             ).fetchall()
@@ -196,7 +209,16 @@ class ReceiptRepository:
     def get_receipt(self, receipt_id: int) -> dict[str, Any] | None:
         with self._connect() as connection:
             row = connection.execute("SELECT * FROM receipts WHERE id = ?", (int(receipt_id),)).fetchone()
-        return dict(row) if row else None
+        if not row:
+            return None
+        record = dict(row)
+        record["ocr_error"] = None
+        try:
+            record["original_ocr_text"] = crypto_service.decrypt_text(record.get("original_ocr_text"))
+        except crypto_service.DecryptionError as exc:
+            record["original_ocr_text"] = None
+            record["ocr_error"] = str(exc)
+        return record
 
     def date_bounds(self) -> tuple[str | None, str | None]:
         with self._connect() as connection:
