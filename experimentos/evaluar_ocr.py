@@ -189,6 +189,8 @@ def main() -> None:
     parser.add_argument("--motor", choices=["easyocr", "tesseract", "ambos"], default="ambos")
     parser.add_argument("--sin-normalizacion", action="store_true",
                         help="desactiva ocr_service.normalise_ocr_spacing (reproduce la ronda 1)")
+    parser.add_argument("--sin-recorte", action="store_true",
+                        help="desactiva el recorte automático de la boleta (reproduce la ronda 2)")
     parser.add_argument("--salida", type=Path, default=RESULTADOS)
     parser.add_argument("--calibrar-tesseract", action="store_true", help="compara los modos psm 3, 4 y 6 de Tesseract")
     args = parser.parse_args()
@@ -197,6 +199,10 @@ def main() -> None:
         referencias = list(csv.DictReader(fh))
     if args.sin_normalizacion:
         ocr_service.normalise_ocr_spacing = lambda texto: re.sub(r"\s+", " ", texto).strip()
+    if args.sin_recorte:
+        original = ocr_service.preprocess_image
+        ocr_service.preprocess_image = lambda contenido, **kw: original(contenido, crop_document=False)
+        globals()["preprocess_image"] = ocr_service.preprocess_image
     if args.calibrar_tesseract:
         for psm in (3, 4, 6):
             TESSERACT_CONFIG = f"--oem 1 --psm {psm}"
