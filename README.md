@@ -5,7 +5,7 @@ Prototipo local en Python con Streamlit, OpenCV, EasyOCR y SQLite. La herramient
 ## Funcionalidades incluidas
 
 - **HU-01:** autenticación local mediante `st.session_state`. La contraseña se crea en una terminal, se oculta al escribirla y se almacena como hash PBKDF2-HMAC-SHA256 con salt aleatorio; no hay credenciales predefinidas en el código.
-- **HU-02 / HU-03:** carga individual JPG/JPEG/PNG con límite de 10 MB **o captura con la cámara** (webcam o cámara del celular desde el navegador), vista previa, corrección de inclinación y contraste con OpenCV. El original no se sobrescribe.
+- **HU-02 / HU-03:** carga individual JPG/JPEG/PNG **o HEIC/HEIF (el formato por defecto de iPhone y varios Samsung; se convierte a JPG al subirla, sin que el usuario haga nada)** con límite de 10 MB **o captura con la cámara** (webcam o cámara del celular desde el navegador), vista previa, corrección de inclinación y contraste con OpenCV. El original no se sobrescribe.
 - **HU-04 / HU-07 / HU-11:** EasyOCR preentrenado para español e inglés y reglas heurísticas diferenciadas para Formato A y B. Los campos ausentes o dudosos permanecen vacíos.
 - **HU-05 / HU-06:** formulario editable, validaciones para fecha, comercio y total positivo, confirmación explícita y guardado persistente en SQLite. La acción de guardado es idempotente dentro de la misma carga/sesión.
 - **HU-08 / HU-09 / HU-10:** consulta ordenada por fecha descendente, filtros combinables por rango inclusivo y comercio, exportación de las filas filtradas a CSV con total a dos decimales.

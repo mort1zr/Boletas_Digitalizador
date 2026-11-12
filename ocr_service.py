@@ -185,7 +185,7 @@ def preprocess_image(image_bytes: bytes) -> PreprocessedImage:
     encoded = np.frombuffer(image_bytes, dtype=np.uint8)
     original = cv2.imdecode(encoded, cv2.IMREAD_COLOR)
     if original is None or original.size == 0:
-        raise ValueError("No se pudo decodificar la imagen. Prueba con otro JPG o PNG.")
+        raise ValueError("No se pudo decodificar la imagen. Prueba con otra foto (JPG, PNG o HEIC).")
 
     height, width = original.shape[:2]
     longest_side = max(height, width)
