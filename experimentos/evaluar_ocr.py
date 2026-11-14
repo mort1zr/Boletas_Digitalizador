@@ -80,7 +80,36 @@ def lineas_tesseract(imagen: np.ndarray) -> list[OCRLine]:
     return sorted(lineas, key=lambda linea: (linea.y_center, linea.x_left))
 
 
-MOTORES = {"easyocr": lineas_easyocr, "tesseract": lineas_tesseract}
+_MOTOR_CACHE: dict[str, object] = {}
+
+
+def lineas_rapidocr(imagen: np.ndarray) -> list[OCRLine]:
+    """RapidOCR (modelos PP-OCR en ONNX Runtime): ligero y sin PyTorch."""
+    if "rapidocr" not in _MOTOR_CACHE:
+        from rapidocr_onnxruntime import RapidOCR
+
+        _MOTOR_CACHE["rapidocr"] = RapidOCR()
+    entrada = cv2.cvtColor(imagen, cv2.COLOR_GRAY2BGR) if imagen.ndim == 2 else imagen
+    resultado, _ = _MOTOR_CACHE["rapidocr"](entrada)
+    return ocr_service._group_ocr_results([(caja, texto, float(conf)) for caja, texto, conf in (resultado or [])])
+
+
+def lineas_paddleocr(imagen: np.ndarray) -> list[OCRLine]:
+    """PaddleOCR 3.x (PP-OCRv5 para latín), sin los módulos de orientación/desdistorsión del documento."""
+    if "paddleocr" not in _MOTOR_CACHE:
+        from paddleocr import PaddleOCR
+
+        _MOTOR_CACHE["paddleocr"] = PaddleOCR(lang="es", use_doc_orientation_classify=False, use_doc_unwarping=False,
+                                              use_textline_orientation=False)
+    entrada = cv2.cvtColor(imagen, cv2.COLOR_GRAY2BGR) if imagen.ndim == 2 else imagen
+    items = []
+    for pagina in _MOTOR_CACHE["paddleocr"].predict(entrada):
+        for poligono, texto, conf in zip(pagina["rec_polys"], pagina["rec_texts"], pagina["rec_scores"]):
+            items.append((np.asarray(poligono).tolist(), texto, float(conf)))
+    return ocr_service._group_ocr_results(items)
+
+
+MOTORES = {"easyocr": lineas_easyocr, "tesseract": lineas_tesseract, "rapidocr": lineas_rapidocr, "paddleocr": lineas_paddleocr}
 
 
 def version_motor(motor: str) -> str:
@@ -89,6 +118,14 @@ def version_motor(motor: str) -> str:
         import torch
 
         return f"EasyOCR {easyocr.__version__} (PyTorch {torch.__version__}, CPU)"
+    if motor == "rapidocr":
+        import importlib.metadata as m
+
+        return f"RapidOCR {m.version('rapidocr-onnxruntime')} (ONNX Runtime {m.version('onnxruntime')}, CPU)"
+    if motor == "paddleocr":
+        import importlib.metadata as m
+
+        return f"PaddleOCR {m.version('paddleocr')} (PaddlePaddle {m.version('paddlepaddle')}, CPU, PP-OCRv5 latín)"
     import pytesseract
 
     return f"Tesseract {pytesseract.get_tesseract_version()} (pytesseract, '{TESSERACT_CONFIG}', idioma spa)"
@@ -97,10 +134,13 @@ def version_motor(motor: str) -> str:
 # --------------------------------------------------------------------------- evaluación
 def evaluar(motor: str, referencias: list[dict]) -> tuple[list[dict], dict]:
     reconocer = MOTORES[motor]
-    if motor == "easyocr":
+    if motor != "tesseract":
         # Carga del modelo fuera de la medición: se reporta aparte como "arranque en frío".
         inicio = time.perf_counter()
-        ocr_service._reader()
+        if motor == "easyocr":
+            ocr_service._reader()
+        else:
+            reconocer(np.full((64, 64), 255, np.uint8))
         arranque = time.perf_counter() - inicio
     else:
         arranque = 0.0
@@ -184,9 +224,10 @@ def tabla_md(resumenes: list[dict]) -> str:
 
 
 def main() -> None:
-    global RESULTADOS, TESSERACT_CONFIG
+    global RESULTADOS, TESSERACT_CONFIG, DATOS
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--motor", choices=["easyocr", "tesseract", "ambos"], default="ambos")
+    parser.add_argument("--motor", choices=["easyocr", "tesseract", "rapidocr", "paddleocr", "ambos", "todos"], default="ambos")
+    parser.add_argument("--datos", type=Path, default=None, help="carpeta con referencia.csv e imagenes/ (por defecto experimentos/datos)")
     parser.add_argument("--sin-normalizacion", action="store_true",
                         help="desactiva ocr_service.normalise_ocr_spacing (reproduce la ronda 1)")
     parser.add_argument("--con-recorte", action="store_true", help="activa el recorte automático de la boleta")
@@ -196,6 +237,8 @@ def main() -> None:
     parser.add_argument("--calibrar-tesseract", action="store_true", help="compara los modos psm 3, 4 y 6 de Tesseract")
     args = parser.parse_args()
     RESULTADOS = args.salida
+    if args.datos:
+        DATOS = args.datos.resolve()
     with (DATOS / "referencia.csv").open(encoding="utf-8") as fh:
         referencias = list(csv.DictReader(fh))
     if args.sin_normalizacion:
@@ -213,7 +256,7 @@ def main() -> None:
                   f"comercio {r['exactitud_comercio']} | total {r['exactitud_total']}")
         return
     RESULTADOS.mkdir(parents=True, exist_ok=True)
-    motores = ["easyocr", "tesseract"] if args.motor == "ambos" else [args.motor]
+    motores = {"ambos": ["easyocr", "tesseract"], "todos": ["easyocr", "tesseract", "rapidocr", "paddleocr"]}.get(args.motor, [args.motor])
     resumenes = []
     for motor in motores:
         print(f"Evaluando {motor} sobre {len(referencias)} comprobantes…", flush=True)
