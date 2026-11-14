@@ -147,9 +147,9 @@ def test_total_etiquetado_tiene_prioridad_sobre_el_importe_aislado():
 
 # ------------------------------------------------------------------ comercio: persona natural y direcciones
 def test_comercio_persona_natural_justo_antes_del_ruc():
-    campos = o.extract_fields(_lineas("TOSCANO HUILLCA PAUL CHRISTIAN", "RUC 10480354465", "PROLONGACION GAMARRA # 860 (TDA. 138-139)",
-                                      "GALERIA AZUL GAMARRA LA VICTORIA- LIMA", "BOLETA DE VENTA ELECTRONICA"))
-    assert campos.merchant == "TOSCANO HUILLCA PAUL CHRISTIAN"
+    campos = o.extract_fields(_lineas("PEREZ QUISPE MARIA ELENA", "RUC 10000000019", "AV. LOS OLIVOS # 123 (TDA. 10-11)",
+                                      "GALERIA CENTRAL LIMA", "BOLETA DE VENTA ELECTRONICA"))
+    assert campos.merchant == "PEREZ QUISPE MARIA ELENA"
 
 
 def test_una_direccion_no_gana_al_nombre_del_comercio():
