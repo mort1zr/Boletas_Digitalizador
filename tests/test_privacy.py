@@ -16,7 +16,7 @@ from privacy import mask_personal_data
         ("RUC 20608300393", "RUC 20608300393"),  # persona jurídica: dato público del comercio
         ("Tarjeta 4111 1111 1111 1111", "Tarjeta ************1111"),
         ("TC: 4111111111111111", "TC: ************1111"),
-        ("4551********6726", "4551********6726"),  # ya enmascarada por el terminal
+        ("4111********1111", "4111********1111"),  # ya enmascarada por el terminal
         ("ID: 0000630918177890", "ID: 0000630918177890"),  # no supera Luhn: no es tarjeta
         ("Total: S/ 126.00", "Total: S/ 126.00"),
         ("05/11/26 13:25 TICKET 20261106-05-000312340", "05/11/26 13:25 TICKET 20261106-05-000312340"),

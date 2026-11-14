@@ -147,9 +147,9 @@ def test_total_etiquetado_tiene_prioridad_sobre_el_importe_aislado():
 
 # ------------------------------------------------------------------ comercio: persona natural y direcciones
 def test_comercio_persona_natural_justo_antes_del_ruc():
-    campos = o.extract_fields(_lineas("TOSCANO HUILLCA PAUL CHRISTIAN", "RUC 10480354465", "PROLONGACION GAMARRA # 860 (TDA. 138-139)",
-                                      "GALERIA AZUL GAMARRA LA VICTORIA- LIMA", "BOLETA DE VENTA ELECTRONICA"))
-    assert campos.merchant == "TOSCANO HUILLCA PAUL CHRISTIAN"
+    campos = o.extract_fields(_lineas("PEREZ QUISPE MARIA ELENA", "RUC 10000000019", "AV. LOS OLIVOS # 123 (TDA. 10-11)",
+                                      "GALERIA CENTRAL LIMA", "BOLETA DE VENTA ELECTRONICA"))
+    assert campos.merchant == "PEREZ QUISPE MARIA ELENA"
 
 
 def test_una_direccion_no_gana_al_nombre_del_comercio():
@@ -160,3 +160,26 @@ def test_una_direccion_no_gana_al_nombre_del_comercio():
 def test_boleta_con_items_sin_etiqueta_no_adivina_el_total():
     campos = o.extract_fields(_lineas("TIENDA DEMO", "Pan 3.50", "S/ 8.70"))
     assert campos.total == ""
+
+
+# ------------------------------------------------------------------ fechas implausibles e importe en letras sin «SON»
+def test_un_importe_negativo_no_se_toma_como_fecha():
+    campos = o.extract_fields(_lineas("TIENDA S.A.C.", "SAPOLIO COCO X900 -2.10 3.50", "Saldo al 07/11/26: 317 pts", "TOTAL 10.00"))
+    assert campos.receipt_date == "2026-11-07"
+
+
+@pytest.mark.parametrize("texto", ["Fecha: 25/08/2605", "Fecha: 05/11/2613", "Fecha: 01/02/2010"])
+def test_fechas_con_anio_implausible_se_descartan(texto):
+    assert o.extract_fields(_lineas("TIENDA S.A.C.", texto, "TOTAL 1.00")).receipt_date == ""
+
+
+def test_importe_en_letras_sin_la_palabra_son():
+    assert o.amount_in_words("VEINTISEIS Y 68/100 SOLES") == 2668
+    assert o.amount_in_words("SIETE Y 80/100 S0LES") == 780
+    assert o.amount_in_words("TARJ BANC 7.80") is None
+
+
+def test_total_ambiguo_se_resuelve_con_el_importe_en_letras_sin_son():
+    campos = o.extract_fields(_lineas("COMPANIA HARD DISCOUNT S.A.C.", "RUC 20608280333", "IMPORTE TOTAL S/ S/ 7.80 1.19",
+                                      "TOTAL A PAGAR S/ 7.80", "SIETE Y 80/100 S0LES", "TARJ BANC 7.80"))
+    assert campos.total == "7.80"
