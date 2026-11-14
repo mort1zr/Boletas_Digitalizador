@@ -5,7 +5,23 @@
     "ic95_global": [
       7.0,
       45.2
-    ]
+    ],
+    "ic95_por_campo": {
+      "fecha": [
+        11.8,
+        76.9
+      ],
+      "comercio": [
+        0.0,
+        43.4
+      ],
+      "total": [
+        3.6,
+        62.4
+      ]
+    },
+    "boletas_completas": 0,
+    "n": 5
   },
   "ronda1_tesseract": {
     "campos_correctos": 3,
@@ -13,7 +29,23 @@
     "ic95_global": [
       7.0,
       45.2
-    ]
+    ],
+    "ic95_por_campo": {
+      "fecha": [
+        11.8,
+        76.9
+      ],
+      "comercio": [
+        0.0,
+        43.4
+      ],
+      "total": [
+        3.6,
+        62.4
+      ]
+    },
+    "boletas_completas": 0,
+    "n": 5
   },
   "ronda2_easyocr": {
     "campos_correctos": 4,
@@ -21,7 +53,23 @@
     "ic95_global": [
       10.9,
       52.0
-    ]
+    ],
+    "ic95_por_campo": {
+      "fecha": [
+        11.8,
+        76.9
+      ],
+      "comercio": [
+        0.0,
+        43.4
+      ],
+      "total": [
+        11.8,
+        76.9
+      ]
+    },
+    "boletas_completas": 0,
+    "n": 5
   },
   "ronda2_tesseract": {
     "campos_correctos": 3,
@@ -29,6 +77,118 @@
     "ic95_global": [
       7.0,
       45.2
-    ]
+    ],
+    "ic95_por_campo": {
+      "fecha": [
+        11.8,
+        76.9
+      ],
+      "comercio": [
+        0.0,
+        43.4
+      ],
+      "total": [
+        3.6,
+        62.4
+      ]
+    },
+    "boletas_completas": 0,
+    "n": 5
+  },
+  "final_easyocr": {
+    "campos_correctos": 15,
+    "campos_total": 33,
+    "ic95_global": [
+      29.8,
+      62.0
+    ],
+    "ic95_por_campo": {
+      "fecha": [
+        35.4,
+        84.8
+      ],
+      "comercio": [
+        15.2,
+        64.6
+      ],
+      "total": [
+        15.2,
+        64.6
+      ]
+    },
+    "boletas_completas": 1,
+    "n": 11
+  },
+  "final_tesseract": {
+    "campos_correctos": 15,
+    "campos_total": 33,
+    "ic95_global": [
+      29.8,
+      62.0
+    ],
+    "ic95_por_campo": {
+      "fecha": [
+        21.3,
+        72.0
+      ],
+      "comercio": [
+        15.2,
+        64.6
+      ],
+      "total": [
+        28.0,
+        78.7
+      ]
+    },
+    "boletas_completas": 1,
+    "n": 11
+  },
+  "final_rapidocr": {
+    "campos_correctos": 22,
+    "campos_total": 33,
+    "ic95_global": [
+      49.6,
+      80.2
+    ],
+    "ic95_por_campo": {
+      "fecha": [
+        43.4,
+        90.3
+      ],
+      "comercio": [
+        21.3,
+        72.0
+      ],
+      "total": [
+        52.3,
+        94.9
+      ]
+    },
+    "boletas_completas": 3,
+    "n": 11
+  },
+  "final_paddleocr": {
+    "campos_correctos": 28,
+    "campos_total": 33,
+    "ic95_global": [
+      69.1,
+      93.3
+    ],
+    "ic95_por_campo": {
+      "fecha": [
+        62.3,
+        98.4
+      ],
+      "comercio": [
+        43.4,
+        90.3
+      ],
+      "total": [
+        62.3,
+        98.4
+      ]
+    },
+    "boletas_completas": 6,
+    "n": 11
   }
 }

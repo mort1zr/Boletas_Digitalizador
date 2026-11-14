@@ -15,7 +15,7 @@ CAPAS = [
     ("4. Extracción de\ninformación", "reglas · ocr_service.py", "#FDE2D4", ["Fecha\n(patrones, errores\nde lectura)", "Comercio\n(encima del RUC)", "Total\n(etiquetas, importe\nen letras)"]),
     ("5. Privacidad y\nvalidación", "privacy.py ·\nreceipt_service.py", "#E2F1E2", ["Enmascarado de DNI,\ntarjetas y RUC 10", "Reglas de\nvalidación", "Confirmación\nexplícita"]),
     ("6. Persistencia", "repository.py ·\ncrypto_service.py", "#EDE5F4", ["SQLite\n(propuestos + confirmados)", "Imágenes y texto OCR\ncifrados (Fernet)", "Escritura\natómica"]),
-    ("7. Consulta y\nexportación", "repository.py · nl_query.py", "#ECECEC", ["Filtros por\nfecha y comercio", "Vista de\nevidencia", "Exportación\nCSV UTF-8", "Preguntas en lenguaje\nnatural (cifras por SQL)"]),
+    ("7. Consulta y\nexportación", "repository.py · nl_query.py", "#ECECEC", ["Filtros por\nfecha y comercio", "Vista de\nevidencia", "Exportación\nCSV UTF-8", "Preguntas en\nlenguaje natural"]),
 ]
 FLUJOS = ["imagen (bytes)", "imagen procesada", "líneas + confianza", "campos propuestos", "campos confirmados", "registros"]
 
