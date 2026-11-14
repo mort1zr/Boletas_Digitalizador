@@ -9,13 +9,13 @@ from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
 
 plt.rcParams["font.family"] = "Liberation Serif"
 CAPAS = [
-    ("1. Presentación", "Streamlit · ui.py", "#E3EBF6", ["Inicio de sesión\n(PBKDF2)", "Carga de archivo\no cámara", "Revisión y\nconfirmación", "Consulta y\nevidencia"]),
-    ("2. Procesamiento\nde imágenes", "OpenCV · ocr_service.py", "#FFF1D6", ["Escalado\n≤ 2400 px", "Grises + inclinación\n(Canny + Hough)", "Contraste\nlocal CLAHE", "Filtro\nbilateral"]),
-    ("3. Reconocimiento\nOCR", "EasyOCR · preentrenado", "#FFE6C7", ["Detección de texto\nCRAFT", "Reconocimiento\nCRNN (es/en)", "Agrupación\nen líneas"]),
-    ("4. Extracción de\ninformación", "reglas · ocr_service.py", "#FDE2D4", ["Fecha\n(patrones + etiquetas)", "Comercio\n(encabezado)", "Total\n(etiquetas A/B)"]),
-    ("5. Validación\nde datos", "receipt_service.py", "#E2F1E2", ["Reglas de\nvalidación", "Confirmación\nexplícita", "Guardado\nidempotente"]),
-    ("6. Persistencia", "repository.py", "#EDE5F4", ["SQLite\n(propuestos + confirmados)", "Imágenes original\ny procesada", "Escritura\natómica"]),
-    ("7. Consulta y\nexportación", "repository.py ·\nreceipt_service.py", "#ECECEC", ["Filtros por\nfecha y comercio", "Vista de\nevidencia OCR", "Exportación\nCSV UTF-8"]),
+    ("1. Presentación", "Streamlit · ui.py", "#E3EBF6", ["Inicio de sesión\n(PBKDF2)", "Carga de archivo\n(JPG, PNG, HEIC)\no cámara", "Revisión y\nconfirmación", "Consulta, evidencia\ny preguntas"]),
+    ("2. Procesamiento\nde imágenes", "OpenCV · image_io.py ·\nocr_service.py", "#FFF1D6", ["HEIC → JPG\n(giro EXIF)", "Escalado\n≤ 2400 px", "Grises + inclinación\n(Canny + Hough)", "Recorte y realce\n(opcionales)"]),
+    ("3. Reconocimiento\nOCR", "PaddleOCR 3.7 · CPU\nPP-OCRv5 preentrenado", "#FFE6C7", ["Detección de texto\nPP-OCRv5 móvil", "Reconocimiento\nlatino (español)", "Agrupación\nen líneas"]),
+    ("4. Extracción de\ninformación", "reglas · ocr_service.py", "#FDE2D4", ["Fecha\n(patrones, errores\nde lectura)", "Comercio\n(encima del RUC)", "Total\n(etiquetas, importe\nen letras)"]),
+    ("5. Privacidad y\nvalidación", "privacy.py ·\nreceipt_service.py", "#E2F1E2", ["Enmascarado de DNI,\ntarjetas y RUC 10", "Reglas de\nvalidación", "Confirmación\nexplícita"]),
+    ("6. Persistencia", "repository.py ·\ncrypto_service.py", "#EDE5F4", ["SQLite\n(propuestos + confirmados)", "Imágenes y texto OCR\ncifrados (Fernet)", "Escritura\natómica"]),
+    ("7. Consulta y\nexportación", "repository.py · nl_query.py", "#ECECEC", ["Filtros por\nfecha y comercio", "Vista de\nevidencia", "Exportación\nCSV UTF-8", "Preguntas en lenguaje\nnatural (cifras por SQL)"]),
 ]
 FLUJOS = ["imagen (bytes)", "imagen procesada", "líneas + confianza", "campos propuestos", "campos confirmados", "registros"]
 
@@ -39,6 +39,6 @@ for i, (titulo, sub, color, comps) in enumerate(CAPAS):
 # Banda transversal
 ax.add_patch(FancyBboxPatch((x0 + ancho + 3, 124 - 7 * alto - 6 * sep), 15, 7 * alto + 6 * sep, boxstyle="round,pad=0.4,rounding_size=1.5", fc="#F5F7FA", ec="#7A8CA8", lw=1.1, ls="--"))
 ax.text(x0 + ancho + 10.5, 124 - (7 * alto + 6 * sep) / 2,
-        "TRANSVERSAL\n\nAutenticación local\nPBKDF2-SHA256\n\nConfiguración\napp_config.py\n\nPruebas\nautomatizadas\n(pytest, 144)\n\nIntegración\ncontinua\n(GitHub Actions)\n\nDespliegue\nDocker",
+        "TRANSVERSAL\n\nAutenticación local\nPBKDF2-SHA256\n\nConfiguración\napp_config.py\n\nPruebas\nautomatizadas\n(pytest, 263)\n\nIntegración\ncontinua\n(GitHub Actions)\n\nDespliegue\nDocker y\nHugging Face",
         fontsize=9.2, ha="center", va="center", color="#1F2A3A")
 fig.savefig(Path(__file__).with_suffix(".png"), bbox_inches="tight", facecolor="white")
