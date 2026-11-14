@@ -1,6 +1,6 @@
 """Flujo completo en la interfaz: imagen (archivo o cámara) → OCR → revisión → guardado.
 
-EasyOCR se sustituye por un lector simulado; el resto (Streamlit, OpenCV, SQLite y
+PaddleOCR se sustituye por un lector simulado; el resto (Streamlit, OpenCV, SQLite y
 almacenamiento de imágenes) se ejecuta de verdad.
 """
 from __future__ import annotations
@@ -31,7 +31,7 @@ class _FakeReader:
     def __init__(self):
         self.calls = 0
 
-    def readtext(self, image, **kwargs):
+    def read(self, image):
         self.calls += 1
         return [
             (_box(20, 20), "BODEGA SAN JUAN", 0.95),

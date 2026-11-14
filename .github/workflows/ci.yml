@@ -28,11 +28,11 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: pip
 
-      # Las pruebas simulan EasyOCR, así que se omite (evita descargar PyTorch).
+      # Las pruebas simulan el OCR, así que se omiten PaddlePaddle y PaddleOCR (evita ~700 MB).
       - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
-          grep -v '^easyocr' requirements.txt > requirements-ci.txt
+          grep -v '^paddle' requirements.txt > requirements-ci.txt
           pip install -r requirements-ci.txt
 
       - name: Ejecutar pytest
@@ -45,9 +45,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # PRELOAD_MODELS=0 acelera la CI; la imagen de producción descarga los modelos al construir.
+      # Se construye con los modelos de PaddleOCR (unos 13 MB) para probar también esa descarga.
       - name: Construir imagen
-        run: docker build --build-arg PRELOAD_MODELS=0 -t digitalizador-boletas:ci .
+        run: docker build -t digitalizador-boletas:ci .
 
       - name: Arrancar y comprobar salud
         run: |
@@ -60,4 +60,15 @@ jobs:
           exit 1
 
       - name: Comprobar que la app importa sus módulos
-        run: docker exec app python -c "import ui, ocr_service, receipt_service, repository, auth_service, easyocr; print('ok')"
+        run: docker exec app python -c "import ui, ocr_service, receipt_service, repository, auth_service, paddleocr; print('ok')"
+
+      - name: Leer una imagen con PaddleOCR dentro del contenedor
+        run: |
+          docker exec app python -c "
+          import cv2, numpy as np, ocr_service
+          img = np.full((300, 1000), 255, np.uint8)
+          cv2.putText(img, 'TOTAL A PAGAR S/ 118.00', (30, 150), cv2.FONT_HERSHEY_SIMPLEX, 1.6, 0, 3)
+          lines, raw = ocr_service.run_ocr(img)
+          print(repr(raw))
+          assert '118' in raw.replace(' ', ''), raw
+          "

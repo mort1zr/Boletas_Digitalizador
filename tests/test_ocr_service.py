@@ -291,7 +291,7 @@ class _FakeReader:
         self.results = results
         self.calls = 0
 
-    def readtext(self, image, **kwargs):
+    def read(self, image):
         self.calls += 1
         assert image.ndim == 2  # recibe la copia procesada en escala de grises
         return self.results

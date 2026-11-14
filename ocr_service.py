@@ -1,4 +1,4 @@
-"""Preprocesamiento OpenCV y extracción heurística de campos mediante EasyOCR.
+"""Preprocesamiento OpenCV, OCR con PaddleOCR y extracción heurística de campos.
 
 Parámetros del pipeline documentados:
 - Decodificación: cv2.IMREAD_COLOR.
@@ -11,9 +11,10 @@ Parámetros del pipeline documentados:
 - Contraste (opcional, ``enhance=True``): CLAHE clipLimit=2.0 y tileGridSize=(8, 8).
 - Reducción de ruido (opcional): bilateralFilter(d=5, sigmaColor=35, sigmaSpace=35).
 - Recorte de la boleta (opcional, ``crop_document=True``): región clara más grande y perspectiva.
-- EasyOCR: idiomas español e inglés, gpu=False; readtext con detail=1,
-  paragraph=False, min_size=8, text_threshold=0.6, low_text=0.3,
-  link_threshold=0.4, contrast_ths=0.1, adjust_contrast=0.7 y mag_ratio=1.5.
+- PaddleOCR 3.x (CPU): detector PP-OCRv5_mobile_det y reconocedor latin_PP-OCRv5_mobile_rec
+  (alfabeto latino: español con tildes y ñ), sin los módulos de orientación del documento, de
+  desdistorsión ni de orientación de línea; oneDNN desactivado (falla en CPU con PaddlePaddle 3.3).
+  Los pesos se descargan la primera vez (carpeta PADDLE_PDX_CACHE_HOME) o se toman de PADDLE_MODELOS.
 
 Las reglas A/B son heurísticas iniciales. Los documentos de planificación no aportan
 imágenes reales de boletas ni especifican su diseño visual; es necesario validarlas
@@ -22,6 +23,7 @@ con el conjunto de ajuste del equipo.
 from __future__ import annotations
 
 import math
+import os
 import re
 import unicodedata
 from dataclasses import asdict, dataclass
@@ -234,7 +236,7 @@ def preprocess_image(image_bytes: bytes, crop_document: bool = False, enhance: b
     ``crop_document`` recorta el papel del fondo y corrige la perspectiva; ``enhance`` aplica CLAHE y
     filtro bilateral. Ambos están desactivados por defecto: en las 6 boletas reales del proyecto
     (experimentos/resultados/ronda3_preprocesado.md) la imagen en gris sin realce dio más campos
-    correctos tanto con EasyOCR como con Tesseract, porque el realce amplifica el grano de la
+    correctos tanto con EasyOCR como con Tesseract (ronda 3), porque el realce amplifica el grano de la
     impresión térmica y el recorte no fue consistente. Se conservan como opciones hasta validarlos
     con una muestra mayor.
     """
@@ -278,16 +280,6 @@ def preprocess_image(image_bytes: bytes, crop_document: bool = False, enhance: b
     if not ok:
         raise RuntimeError("No se pudo codificar la imagen procesada.")
     return PreprocessedImage(image=denoised, png_bytes=png_encoded.tobytes(), rotation_degrees=rotation, cropped=cropped)
-
-
-@lru_cache(maxsize=1)
-def _reader():
-    try:
-        import easyocr
-    except ImportError as exc:
-        raise RuntimeError("EasyOCR no está instalado. Ejecuta: pip install -r requirements.txt") from exc
-    # Los pesos preentrenados se descargan la primera vez que se ejecuta el OCR.
-    return easyocr.Reader(["es", "en"], gpu=False, verbose=False)
 
 
 def _group_ocr_results(results: Sequence[Any]) -> list[OCRLine]:
@@ -335,24 +327,56 @@ def _group_ocr_results(results: Sequence[Any]) -> list[OCRLine]:
     return sorted(lines, key=lambda line: (line.y_center, line.x_left))
 
 
+DETECTION_MODEL = "PP-OCRv5_mobile_det"
+RECOGNITION_MODEL = "latin_PP-OCRv5_mobile_rec"
+
+
+class PaddleReader:
+    """Envoltorio de PaddleOCR que devuelve (caja, texto, confianza), el formato que usa ``_group_ocr_results``."""
+
+    def __init__(self, engine: Any) -> None:
+        self._engine = engine
+
+    def read(self, image: np.ndarray) -> list[tuple[list[list[float]], str, float]]:
+        # PaddleOCR espera una imagen de 3 canales; la copia procesada es de un solo canal.
+        bgr = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR) if image.ndim == 2 else image
+        items: list[tuple[list[list[float]], str, float]] = []
+        for page in self._engine.predict(bgr):
+            for polygon, text, score in zip(page["rec_polys"], page["rec_texts"], page["rec_scores"]):
+                items.append((np.asarray(polygon, dtype=float).tolist(), str(text), float(score)))
+        return items
+
+
+@lru_cache(maxsize=1)
+def _reader() -> PaddleReader:
+    # Evita la comprobación de conectividad de PaddleX al arrancar (lenta o bloqueada sin Internet).
+    os.environ.setdefault("PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK", "True")
+    try:
+        from paddleocr import PaddleOCR
+    except ImportError as exc:
+        raise RuntimeError("PaddleOCR no está instalado. Ejecuta: pip install -r requirements.txt") from exc
+    options: dict[str, Any] = {
+        "text_detection_model_name": DETECTION_MODEL,
+        "text_recognition_model_name": RECOGNITION_MODEL,
+        "use_doc_orientation_classify": False,
+        "use_doc_unwarping": False,
+        "use_textline_orientation": False,
+        "enable_mkldnn": False,
+    }
+    local_models = os.environ.get("PADDLE_MODELOS", "").strip()
+    if local_models:  # modelos ya descargados: DETECTION_MODEL_infer y RECOGNITION_MODEL_infer
+        options["text_detection_model_dir"] = f"{local_models}/{DETECTION_MODEL}_infer"
+        options["text_recognition_model_dir"] = f"{local_models}/{RECOGNITION_MODEL}_infer"
+    # Los pesos preentrenados se descargan la primera vez que se ejecuta el OCR.
+    return PaddleReader(PaddleOCR(**options))
+
+
 def run_ocr(processed_image: np.ndarray) -> tuple[list[OCRLine], str]:
     reader = _reader()
-    results = reader.readtext(
-        processed_image,
-        detail=1,
-        paragraph=False,
-        min_size=8,
-        text_threshold=0.6,
-        low_text=0.3,
-        link_threshold=0.4,
-        contrast_ths=0.1,
-        adjust_contrast=0.7,
-        mag_ratio=1.5,
-    )
-    lines = _group_ocr_results(results)
+    lines = _group_ocr_results(reader.read(processed_image))
     raw_text = "\n".join(line.text for line in lines)
     if not raw_text.strip():
-        raise RuntimeError("EasyOCR no reconoció texto. Vuelve a intentar o carga una imagen más nítida.")
+        raise RuntimeError("El OCR no reconoció texto. Vuelve a intentar o carga una imagen más nítida.")
     return lines, raw_text
 
 
@@ -711,7 +735,7 @@ _SPACE_BEFORE_DOT_RE = re.compile(r"(?<=[A-Za-zÁÉÍÓÚÑáéíóúñ])\s+\.(?
 def normalise_ocr_spacing(text: str) -> str:
     """Corrige espacios que el OCR inserta al unir cajas de texto vecinas.
 
-    Los detectores por regiones (p. ej. CRAFT en EasyOCR) pueden separar un importe
+    Los detectores por regiones (p. ej. los detectores de EasyOCR o PaddleOCR) pueden separar un importe
     en dos cajas ("65" y ".50"); al unirlas en una línea queda "65 .50" y el importe
     se lee mal. También aparece "S.A.C ." en razones sociales. La corrección es
     genérica y se aplica igual a cualquier motor OCR.

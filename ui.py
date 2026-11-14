@@ -90,7 +90,7 @@ def _clear_work_state() -> None:
 
 def _login_screen() -> None:
     st.title("Digitalizador inteligente de boletas")
-    st.caption("Prototipo local · Python · OpenCV · EasyOCR · SQLite")
+    st.caption("Prototipo local · Python · OpenCV · PaddleOCR · SQLite")
     st.subheader("Iniciar sesión")
     try:
         auth_service.bootstrap_user_from_env()
@@ -224,9 +224,9 @@ def _render_upload_tab(repository: ReceiptRepository) -> None:
             key="receipt_format_choice",
             help="A prioriza etiquetas explícitas de total. B también admite un importe monetario al final cuando no hay etiqueta inequívoca. Ajusta estas reglas con las boletas reales del proyecto.",
         )
-        if st.button("Procesar imagen con OpenCV + EasyOCR", type="primary", width="stretch", key="process_receipt_button"):
+        if st.button("Procesar imagen con OpenCV + PaddleOCR", type="primary", width="stretch", key="process_receipt_button"):
             try:
-                with st.spinner("Corrigiendo imagen y reconociendo el texto. En el primer uso se pueden descargar los modelos de EasyOCR…"):
+                with st.spinner("Corrigiendo imagen y reconociendo el texto. En el primer uso se pueden descargar los modelos de PaddleOCR…"):
                     result = process_receipt(image_bytes, format_label)
                     # La sesión guarda el resultado para que los reruns no vuelvan a ejecutar el OCR.
                     result["format"] = format_label
@@ -306,7 +306,7 @@ def _render_upload_tab(repository: ReceiptRepository) -> None:
             else:
                 st.success(f"La acción ya estaba registrada. ID: {outcome.receipt_id}; no se creó un duplicado.")
 
-    with st.expander("Ver texto original reconocido por EasyOCR"):
+    with st.expander("Ver texto original reconocido por PaddleOCR"):
         st.text(result.get("raw_text", "") or "(Sin texto reconocido)")
 
 
@@ -354,7 +354,7 @@ def _render_evidence(repository: ReceiptRepository, selected_id: int | None) -> 
         st.write(f"Comercio: {record['merchant']}")
         st.write(f"Total: {format_total(record['total_cents'])}")
         st.caption(f"Formato {record['receipt_format']} · registrado {record['created_at']}")
-    with st.expander("Texto reconocido por EasyOCR (datos personales enmascarados)"):
+    with st.expander("Texto reconocido por PaddleOCR (datos personales enmascarados)"):
         if record.get("ocr_error"):
             st.warning(record["ocr_error"])
         else:

@@ -4,7 +4,7 @@ Ejecuta el pipeline real del prototipo (preprocesamiento OpenCV + OCR + reglas d
 extracción de ``ocr_service``) sobre cada comprobante de ``datos/referencia.csv``
 y compara fecha, comercio y total con los valores de referencia.
 
-Para comparar motores de forma justa, EasyOCR y Tesseract reciben la MISMA imagen
+Para comparar motores de forma justa, todos reciben la MISMA imagen
 preprocesada y sus líneas pasan por las MISMAS reglas de extracción; solo cambia
 el motor de reconocimiento.
 
@@ -58,9 +58,20 @@ def normalizar(texto: str) -> str:
 
 
 # --------------------------------------------------------------------------- motores
+_MOTOR_CACHE: dict[str, object] = {}
+
+
 def lineas_easyocr(imagen: np.ndarray) -> list[OCRLine]:
-    lineas, _ = ocr_service.run_ocr(imagen)
-    return lineas
+    """EasyOCR, el motor de las rondas 1 a 4. Ya no es dependencia de la app: requiere ``pip install easyocr``."""
+    if "easyocr" not in _MOTOR_CACHE:
+        import easyocr
+
+        _MOTOR_CACHE["easyocr"] = easyocr.Reader(["es", "en"], gpu=False, verbose=False)
+    resultados = _MOTOR_CACHE["easyocr"].readtext(
+        imagen, detail=1, paragraph=False, min_size=8, text_threshold=0.6, low_text=0.3,
+        link_threshold=0.4, contrast_ths=0.1, adjust_contrast=0.7, mag_ratio=1.5,
+    )
+    return ocr_service._group_ocr_results(resultados)
 
 
 def lineas_tesseract(imagen: np.ndarray) -> list[OCRLine]:
@@ -81,9 +92,6 @@ def lineas_tesseract(imagen: np.ndarray) -> list[OCRLine]:
     return sorted(lineas, key=lambda linea: (linea.y_center, linea.x_left))
 
 
-_MOTOR_CACHE: dict[str, object] = {}
-
-
 def lineas_rapidocr(imagen: np.ndarray) -> list[OCRLine]:
     """RapidOCR (modelos PP-OCR en ONNX Runtime): ligero y sin PyTorch."""
     if "rapidocr" not in _MOTOR_CACHE:
@@ -96,27 +104,9 @@ def lineas_rapidocr(imagen: np.ndarray) -> list[OCRLine]:
 
 
 def lineas_paddleocr(imagen: np.ndarray) -> list[OCRLine]:
-    """PaddleOCR 3.x (PP-OCRv5 para latín), sin los módulos de orientación/desdistorsión del documento."""
-    if "paddleocr" not in _MOTOR_CACHE:
-        from paddleocr import PaddleOCR
-
-        # PADDLE_MODELOS: carpeta con PP-OCRv5_mobile_det_infer y latin_PP-OCRv5_mobile_rec_infer ya descargados
-        # (útil sin acceso directo a los servidores de modelos). Sin ella, PaddleOCR descarga sus modelos.
-        carpeta = os.environ.get("PADDLE_MODELOS")
-        modelos = {}
-        if carpeta:
-            modelos = {
-                "text_detection_model_name": "PP-OCRv5_mobile_det", "text_detection_model_dir": f"{carpeta}/PP-OCRv5_mobile_det_infer",
-                "text_recognition_model_name": "latin_PP-OCRv5_mobile_rec", "text_recognition_model_dir": f"{carpeta}/latin_PP-OCRv5_mobile_rec_infer",
-            }
-        _MOTOR_CACHE["paddleocr"] = PaddleOCR(use_doc_orientation_classify=False, use_doc_unwarping=False,
-                                              use_textline_orientation=False, enable_mkldnn=False, **({} if modelos else {"lang": "es"}), **modelos)
-    entrada = cv2.cvtColor(imagen, cv2.COLOR_GRAY2BGR) if imagen.ndim == 2 else imagen
-    items = []
-    for pagina in _MOTOR_CACHE["paddleocr"].predict(entrada):
-        for poligono, texto, conf in zip(pagina["rec_polys"], pagina["rec_texts"], pagina["rec_scores"]):
-            items.append((np.asarray(poligono).tolist(), texto, float(conf)))
-    return ocr_service._group_ocr_results(items)
+    """PaddleOCR tal como lo usa la app (``ocr_service.run_ocr``); respeta PADDLE_MODELOS."""
+    lineas, _ = ocr_service.run_ocr(imagen)
+    return lineas
 
 
 MOTORES = {"easyocr": lineas_easyocr, "tesseract": lineas_tesseract, "rapidocr": lineas_rapidocr, "paddleocr": lineas_paddleocr}
@@ -147,10 +137,10 @@ def evaluar(motor: str, referencias: list[dict]) -> tuple[list[dict], dict]:
     if motor != "tesseract":
         # Carga del modelo fuera de la medición: se reporta aparte como "arranque en frío".
         inicio = time.perf_counter()
-        if motor == "easyocr":
-            ocr_service._reader()
-        else:
-            reconocer(np.full((64, 64), 255, np.uint8))
+        try:
+            reconocer(np.full((64, 64), 255, np.uint8) * 0 + np.tile(np.arange(64, dtype=np.uint8) * 4, (64, 1)))
+        except RuntimeError:
+            pass  # imagen de calentamiento sin texto: solo interesa cargar el modelo
         arranque = time.perf_counter() - inicio
     else:
         arranque = 0.0
