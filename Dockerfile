@@ -18,9 +18,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Bibliotecas del sistema que necesita OpenCV/PaddlePaddle en una imagen slim.
+# Bibliotecas del sistema que necesitan OpenCV (PaddleOCR instala la variante con interfaz gráfica,
+# que carga libGL) y PaddlePaddle (OpenMP) en una imagen slim.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libgomp1 libglib2.0-0 \
+    && apt-get install -y --no-install-recommends libgomp1 libglib2.0-0 libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
