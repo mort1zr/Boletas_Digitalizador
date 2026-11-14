@@ -1,0 +1,496 @@
+{
+  "entorno": {
+    "fecha_ejecucion": "2026-11-14T03:51:48",
+    "python": "3.13.18",
+    "sistema": "Linux-6.18.44-fc-v470-x86_64-with-glibc2.39",
+    "procesador": "x86_64",
+    "opencv": "4.10.0",
+    "nucleos_cpu": 4
+  },
+  "resultados": [
+    {
+      "motor": "easyocr",
+      "version": "EasyOCR 1.7.2 (PyTorch 2.15.0+cu132, CPU)",
+      "n": 11,
+      "exactitud_fecha": 63.6,
+      "exactitud_comercio": 36.4,
+      "exactitud_total": 45.5,
+      "exactitud_global_campos": 48.5,
+      "exactitud_por_comprobante": 9.1,
+      "similitud_comercio_media": 0.526,
+      "comercio_aprox_090": 45.5,
+      "t_medio_s": 12.2,
+      "t_desv_s": 2.84,
+      "t_min_s": 9.33,
+      "t_max_s": 18.75,
+      "t_ocr_medio_s": 12.03,
+      "t_preproceso_medio_s": 0.171,
+      "arranque_s": 4.88,
+      "por_formato": {
+        "A": {
+          "n": 7,
+          "fecha": 42.9,
+          "comercio": 14.3,
+          "total": 42.9,
+          "comprobante": 0.0
+        },
+        "B": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "C": {
+          "n": 3,
+          "fecha": 100.0,
+          "comercio": 66.7,
+          "total": 33.3,
+          "comprobante": 0.0
+        }
+      },
+      "por_condicion": {
+        "arrugada": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "arrugada_y_reflejo": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "bien_tomada": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "fecha_sin_etiqueta": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "fondo_madera_vertical": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "inclinada_y_tenue": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "sello_y_papel_coloreado": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "sombra_sobre_madera": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "ticket_largo_34_items": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "voucher_brillo": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "voucher_rasgado_sin_etiqueta": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        }
+      }
+    },
+    {
+      "motor": "tesseract",
+      "version": "Tesseract 5.3.4 (pytesseract, '--oem 1 --psm 6', idioma spa)",
+      "n": 11,
+      "exactitud_fecha": 45.5,
+      "exactitud_comercio": 36.4,
+      "exactitud_total": 63.6,
+      "exactitud_global_campos": 48.5,
+      "exactitud_por_comprobante": 9.1,
+      "similitud_comercio_media": 0.669,
+      "comercio_aprox_090": 45.5,
+      "t_medio_s": 1.28,
+      "t_desv_s": 0.76,
+      "t_min_s": 0.35,
+      "t_max_s": 3.17,
+      "t_ocr_medio_s": 1.1,
+      "t_preproceso_medio_s": 0.177,
+      "arranque_s": 0.0,
+      "por_formato": {
+        "A": {
+          "n": 7,
+          "fecha": 42.9,
+          "comercio": 42.9,
+          "total": 57.1,
+          "comprobante": 0.0
+        },
+        "B": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "C": {
+          "n": 3,
+          "fecha": 66.7,
+          "comercio": 33.3,
+          "total": 66.7,
+          "comprobante": 33.3
+        }
+      },
+      "por_condicion": {
+        "arrugada": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "arrugada_y_reflejo": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "bien_tomada": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "fecha_sin_etiqueta": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "fondo_madera_vertical": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "inclinada_y_tenue": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "sello_y_papel_coloreado": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "sombra_sobre_madera": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 100.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "ticket_largo_34_items": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "voucher_brillo": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "voucher_rasgado_sin_etiqueta": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        }
+      }
+    },
+    {
+      "motor": "rapidocr",
+      "version": "RapidOCR 1.2.3 (ONNX Runtime 1.32.0, CPU)",
+      "n": 11,
+      "exactitud_fecha": 72.7,
+      "exactitud_comercio": 45.5,
+      "exactitud_total": 90.9,
+      "exactitud_global_campos": 69.7,
+      "exactitud_por_comprobante": 27.3,
+      "similitud_comercio_media": 0.91,
+      "comercio_aprox_090": 90.9,
+      "t_medio_s": 1.22,
+      "t_desv_s": 0.6,
+      "t_min_s": 0.55,
+      "t_max_s": 2.75,
+      "t_ocr_medio_s": 1.04,
+      "t_preproceso_medio_s": 0.179,
+      "arranque_s": 0.26,
+      "por_formato": {
+        "A": {
+          "n": 7,
+          "fecha": 85.7,
+          "comercio": 28.6,
+          "total": 100.0,
+          "comprobante": 14.3
+        },
+        "B": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "C": {
+          "n": 3,
+          "fecha": 33.3,
+          "comercio": 66.7,
+          "total": 66.7,
+          "comprobante": 33.3
+        }
+      },
+      "por_condicion": {
+        "arrugada": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "arrugada_y_reflejo": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "bien_tomada": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "fecha_sin_etiqueta": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "fondo_madera_vertical": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "inclinada_y_tenue": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "sello_y_papel_coloreado": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "sombra_sobre_madera": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "ticket_largo_34_items": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "voucher_brillo": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "voucher_rasgado_sin_etiqueta": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 100.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        }
+      }
+    },
+    {
+      "motor": "paddleocr",
+      "version": "PaddleOCR 3.7.0 (PaddlePaddle 3.3.1, CPU, modelos móviles PP-OCRv5 latín)",
+      "n": 11,
+      "exactitud_fecha": 100.0,
+      "exactitud_comercio": 72.7,
+      "exactitud_total": 100.0,
+      "exactitud_global_campos": 90.9,
+      "exactitud_por_comprobante": 72.7,
+      "similitud_comercio_media": 0.901,
+      "comercio_aprox_090": 81.8,
+      "t_medio_s": 11.2,
+      "t_desv_s": 5.78,
+      "t_min_s": 3.81,
+      "t_max_s": 26.41,
+      "t_ocr_medio_s": 11.02,
+      "t_preproceso_medio_s": 0.177,
+      "arranque_s": 2.02,
+      "por_formato": {
+        "A": {
+          "n": 7,
+          "fecha": 100.0,
+          "comercio": 71.4,
+          "total": 100.0,
+          "comprobante": 71.4
+        },
+        "B": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "C": {
+          "n": 3,
+          "fecha": 100.0,
+          "comercio": 66.7,
+          "total": 100.0,
+          "comprobante": 66.7
+        }
+      },
+      "por_condicion": {
+        "arrugada": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "arrugada_y_reflejo": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "bien_tomada": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "fecha_sin_etiqueta": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "fondo_madera_vertical": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "inclinada_y_tenue": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "sello_y_papel_coloreado": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "sombra_sobre_madera": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "ticket_largo_34_items": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "voucher_brillo": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "voucher_rasgado_sin_etiqueta": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        }
+      }
+    }
+  ]
+}
