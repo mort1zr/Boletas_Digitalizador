@@ -4,7 +4,7 @@ Ejecuta el pipeline real del prototipo (preprocesamiento OpenCV + OCR + reglas d
 extracción de ``ocr_service``) sobre cada comprobante de ``datos/referencia.csv``
 y compara fecha, comercio y total con los valores de referencia.
 
-Para comparar motores de forma justa, EasyOCR y Tesseract reciben la MISMA imagen
+Para comparar motores de forma justa, todos reciben la MISMA imagen
 preprocesada y sus líneas pasan por las MISMAS reglas de extracción; solo cambia
 el motor de reconocimiento.
 
@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import platform
 import re
 import statistics
@@ -57,9 +58,20 @@ def normalizar(texto: str) -> str:
 
 
 # --------------------------------------------------------------------------- motores
+_MOTOR_CACHE: dict[str, object] = {}
+
+
 def lineas_easyocr(imagen: np.ndarray) -> list[OCRLine]:
-    lineas, _ = ocr_service.run_ocr(imagen)
-    return lineas
+    """EasyOCR, el motor de las rondas 1 a 4. Ya no es dependencia de la app: requiere ``pip install easyocr``."""
+    if "easyocr" not in _MOTOR_CACHE:
+        import easyocr
+
+        _MOTOR_CACHE["easyocr"] = easyocr.Reader(["es", "en"], gpu=False, verbose=False)
+    resultados = _MOTOR_CACHE["easyocr"].readtext(
+        imagen, detail=1, paragraph=False, min_size=8, text_threshold=0.6, low_text=0.3,
+        link_threshold=0.4, contrast_ths=0.1, adjust_contrast=0.7, mag_ratio=1.5,
+    )
+    return ocr_service._group_ocr_results(resultados)
 
 
 def lineas_tesseract(imagen: np.ndarray) -> list[OCRLine]:
@@ -80,7 +92,24 @@ def lineas_tesseract(imagen: np.ndarray) -> list[OCRLine]:
     return sorted(lineas, key=lambda linea: (linea.y_center, linea.x_left))
 
 
-MOTORES = {"easyocr": lineas_easyocr, "tesseract": lineas_tesseract}
+def lineas_rapidocr(imagen: np.ndarray) -> list[OCRLine]:
+    """RapidOCR (modelos PP-OCR en ONNX Runtime): ligero y sin PyTorch."""
+    if "rapidocr" not in _MOTOR_CACHE:
+        from rapidocr_onnxruntime import RapidOCR
+
+        _MOTOR_CACHE["rapidocr"] = RapidOCR()
+    entrada = cv2.cvtColor(imagen, cv2.COLOR_GRAY2BGR) if imagen.ndim == 2 else imagen
+    resultado, _ = _MOTOR_CACHE["rapidocr"](entrada)
+    return ocr_service._group_ocr_results([(caja, texto, float(conf)) for caja, texto, conf in (resultado or [])])
+
+
+def lineas_paddleocr(imagen: np.ndarray) -> list[OCRLine]:
+    """PaddleOCR tal como lo usa la app (``ocr_service.run_ocr``); respeta PADDLE_MODELOS."""
+    lineas, _ = ocr_service.run_ocr(imagen)
+    return lineas
+
+
+MOTORES = {"easyocr": lineas_easyocr, "tesseract": lineas_tesseract, "rapidocr": lineas_rapidocr, "paddleocr": lineas_paddleocr}
 
 
 def version_motor(motor: str) -> str:
@@ -89,6 +118,14 @@ def version_motor(motor: str) -> str:
         import torch
 
         return f"EasyOCR {easyocr.__version__} (PyTorch {torch.__version__}, CPU)"
+    if motor == "rapidocr":
+        import importlib.metadata as m
+
+        return f"RapidOCR {m.version('rapidocr-onnxruntime')} (ONNX Runtime {m.version('onnxruntime')}, CPU)"
+    if motor == "paddleocr":
+        import importlib.metadata as m
+
+        return f"PaddleOCR {m.version('paddleocr')} (PaddlePaddle {m.version('paddlepaddle')}, CPU, modelos móviles PP-OCRv5 latín)"
     import pytesseract
 
     return f"Tesseract {pytesseract.get_tesseract_version()} (pytesseract, '{TESSERACT_CONFIG}', idioma spa)"
@@ -97,10 +134,13 @@ def version_motor(motor: str) -> str:
 # --------------------------------------------------------------------------- evaluación
 def evaluar(motor: str, referencias: list[dict]) -> tuple[list[dict], dict]:
     reconocer = MOTORES[motor]
-    if motor == "easyocr":
+    if motor != "tesseract":
         # Carga del modelo fuera de la medición: se reporta aparte como "arranque en frío".
         inicio = time.perf_counter()
-        ocr_service._reader()
+        try:
+            reconocer(np.full((64, 64), 255, np.uint8) * 0 + np.tile(np.arange(64, dtype=np.uint8) * 4, (64, 1)))
+        except RuntimeError:
+            pass  # imagen de calentamiento sin texto: solo interesa cargar el modelo
         arranque = time.perf_counter() - inicio
     else:
         arranque = 0.0
@@ -184,19 +224,29 @@ def tabla_md(resumenes: list[dict]) -> str:
 
 
 def main() -> None:
-    global RESULTADOS, TESSERACT_CONFIG
+    global RESULTADOS, TESSERACT_CONFIG, DATOS
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--motor", choices=["easyocr", "tesseract", "ambos"], default="ambos")
+    parser.add_argument("--motor", choices=["easyocr", "tesseract", "rapidocr", "paddleocr", "ambos", "todos"], default="ambos")
+    parser.add_argument("--datos", type=Path, default=None, help="carpeta con referencia.csv e imagenes/ (por defecto experimentos/datos)")
     parser.add_argument("--sin-normalizacion", action="store_true",
                         help="desactiva ocr_service.normalise_ocr_spacing (reproduce la ronda 1)")
+    parser.add_argument("--con-recorte", action="store_true", help="activa el recorte automático de la boleta")
+    parser.add_argument("--con-realce", action="store_true",
+                        help="activa CLAHE + filtro bilateral (preprocesado de las rondas 1 y 2)")
     parser.add_argument("--salida", type=Path, default=RESULTADOS)
     parser.add_argument("--calibrar-tesseract", action="store_true", help="compara los modos psm 3, 4 y 6 de Tesseract")
     args = parser.parse_args()
     RESULTADOS = args.salida
+    if args.datos:
+        DATOS = args.datos.resolve()
     with (DATOS / "referencia.csv").open(encoding="utf-8") as fh:
         referencias = list(csv.DictReader(fh))
     if args.sin_normalizacion:
         ocr_service.normalise_ocr_spacing = lambda texto: re.sub(r"\s+", " ", texto).strip()
+    if args.con_recorte or args.con_realce:
+        original = ocr_service.preprocess_image
+        ocr_service.preprocess_image = lambda contenido: original(contenido, crop_document=args.con_recorte, enhance=args.con_realce)
+        globals()["preprocess_image"] = ocr_service.preprocess_image
     if args.calibrar_tesseract:
         for psm in (3, 4, 6):
             TESSERACT_CONFIG = f"--oem 1 --psm {psm}"
@@ -206,7 +256,7 @@ def main() -> None:
                   f"comercio {r['exactitud_comercio']} | total {r['exactitud_total']}")
         return
     RESULTADOS.mkdir(parents=True, exist_ok=True)
-    motores = ["easyocr", "tesseract"] if args.motor == "ambos" else [args.motor]
+    motores = {"ambos": ["easyocr", "tesseract"], "todos": ["easyocr", "tesseract", "rapidocr", "paddleocr"]}.get(args.motor, [args.motor])
     resumenes = []
     for motor in motores:
         print(f"Evaluando {motor} sobre {len(referencias)} comprobantes…", flush=True)

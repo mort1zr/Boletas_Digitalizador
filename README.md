@@ -1,15 +1,15 @@
 # Digitalizador inteligente de boletas de compra
 
-Prototipo local en Python con Streamlit, OpenCV, EasyOCR y SQLite. La herramienta ayuda a registrar **fecha, comercio y total**, pero exige que una persona revise y confirme los valores antes de guardarlos.
+Prototipo local en Python con Streamlit, OpenCV, PaddleOCR y SQLite. La herramienta ayuda a registrar **fecha, comercio y total**, pero exige que una persona revise y confirme los valores antes de guardarlos.
 
 ## Funcionalidades incluidas
 
 - **HU-01:** autenticación local mediante `st.session_state`. La contraseña se crea en una terminal, se oculta al escribirla y se almacena como hash PBKDF2-HMAC-SHA256 con salt aleatorio; no hay credenciales predefinidas en el código.
 - **HU-02 / HU-03:** carga individual JPG/JPEG/PNG **o HEIC/HEIF (el formato por defecto de iPhone y varios Samsung; se convierte a JPG al subirla, sin que el usuario haga nada)** con límite de 10 MB **o captura con la cámara** (webcam o cámara del celular desde el navegador), vista previa, corrección de inclinación y contraste con OpenCV. El original no se sobrescribe.
-- **HU-04 / HU-07 / HU-11:** EasyOCR preentrenado para español e inglés y reglas heurísticas diferenciadas para Formato A y B. Los campos ausentes o dudosos permanecen vacíos.
+- **HU-04 / HU-07 / HU-11:** PaddleOCR preentrenado (alfabeto latino: español con tildes y ñ) y reglas heurísticas diferenciadas para Formato A y B. Los campos ausentes o dudosos permanecen vacíos.
 - **HU-05 / HU-06:** formulario editable, validaciones para fecha, comercio y total positivo, confirmación explícita y guardado persistente en SQLite. La acción de guardado es idempotente dentro de la misma carga/sesión.
 - **HU-08 / HU-09 / HU-10:** consulta ordenada por fecha descendente, filtros combinables por rango inclusivo y comercio, exportación de las filas filtradas a CSV con total a dos decimales.
-- **HU-13:** selección de una fila de la tabla para abrir la imagen, el texto original de EasyOCR, los candidatos propuestos y los valores confirmados.
+- **HU-13:** selección de una fila de la tabla para abrir la imagen, el texto original reconocido por PaddleOCR, los candidatos propuestos y los valores confirmados.
 - **Privacidad:** las imágenes y el texto OCR se **cifran en reposo** (Fernet) y, antes de guardar el texto, se **enmascaran** el DNI, los números de tarjeta y los RUC de persona natural (ver «Privacidad y cifrado»).
 - **Preguntas en lenguaje natural (pestaña 💬 Preguntar):** «¿Cuánto gasté en Makro durante octubre?». La pregunta se traduce a un plan de consulta y **las cifras las calcula el código** sobre tus registros, no un modelo; con `ANTHROPIC_API_KEY` se usa Claude para interpretar la pregunta (solo viaja el texto de la pregunta) y, sin ella o si falla, reglas locales.
 - **Interfaz responsive:** verificada a 390 px (móvil), 768 px (tablet) y escritorio, sin desbordes y con controles táctiles de al menos 44 px.
@@ -18,7 +18,7 @@ Prototipo local en Python con Streamlit, OpenCV, EasyOCR y SQLite. La herramient
 ## Requisitos
 
 - Python 3.10 o superior (recomendado: Python 3.11 o 3.12).
-- Conexión a Internet durante la primera ejecución de EasyOCR para descargar sus modelos preentrenados. No se entrena ningún modelo propio.
+- Conexión a Internet durante la primera ejecución de PaddleOCR para descargar sus modelos preentrenados (unos 13 MB; se guardan en `~/.paddlex`, o en `PADDLE_PDX_CACHE_HOME`). Si ya los tienes descargados, apunta `PADDLE_MODELOS` a la carpeta con `PP-OCRv5_mobile_det_infer` y `latin_PP-OCRv5_mobile_rec_infer`. No se entrena ningún modelo propio.
 - Los registros, las imágenes y el archivo de usuario se almacenan localmente en `data/` por defecto. Se puede cambiar con la variable de entorno `RECEIPT_DATA_DIR` (ruta absoluta o relativa al proyecto). La carpeta `data/` está excluida de Git mediante `.gitignore`.
 - Streamlit 1.49 o superior (versión mínima verificada con `tests/test_ui.py`).
 
@@ -48,7 +48,7 @@ python create_user.py
 streamlit run main.py
 ```
 
-El primer procesamiento puede tardar más mientras EasyOCR descarga los modelos. Para detener Streamlit, usa `Ctrl+C` en la terminal.
+El primer procesamiento puede tardar más mientras PaddleOCR descarga los modelos. Para detener Streamlit, usa `Ctrl+C` en la terminal.
 
 ## Captura con la cámara
 
@@ -87,7 +87,7 @@ python -c "import crypto_service; print(crypto_service.generate_key())"
 
 ## Ejecución con Docker
 
-La imagen incluye Python 3.12, PyTorch solo-CPU, EasyOCR con sus modelos (español e inglés) ya descargados y la aplicación. Los datos (base SQLite, imágenes y cuenta) viven en el volumen `/data`, de modo que sobreviven a reinicios y actualizaciones de la imagen.
+La imagen incluye Python 3.12, PaddlePaddle (CPU), PaddleOCR con sus modelos ya descargados y la aplicación. Los datos (base SQLite, imágenes y cuenta) viven en el volumen `/data`, de modo que sobreviven a reinicios y actualizaciones de la imagen.
 
 ```bash
 docker compose build
@@ -97,9 +97,8 @@ docker compose up -d                                 # abre http://localhost:850
 
 - `docker compose logs -f` muestra los registros y `docker compose down` detiene la app sin borrar los datos. `docker compose down -v` sí elimina el volumen con los datos.
 - Copia de seguridad del volumen: `docker run --rm -v digitalizador_boletas_boletas-data:/data -v "$PWD":/backup alpine tar czf /backup/boletas.tgz -C /data .` (el prefijo del volumen depende del nombre de la carpeta del proyecto; consúltalo con `docker volume ls`).
-- La imagen pesa varios GB por PyTorch. Argumentos de construcción opcionales:
+- La imagen pesa más de 1 GB por PaddlePaddle. Argumentos de construcción opcionales:
   - `PRELOAD_MODELS=0`: no descarga los modelos al construir (se descargan en el primer uso; requiere Internet en el contenedor).
-  - `TORCH_INDEX_URL`: índice alternativo de PyTorch (por defecto, la variante CPU de `download.pytorch.org`).
   - `BASE_IMAGE`: imagen base alternativa (por ejemplo, `public.ecr.aws/docker/library/python:3.12-slim` si Docker Hub limita las descargas).
 - El contenedor usa el UID 1000. Si ya tenías un volumen creado con una versión anterior (UID 10001), corrige sus permisos con `docker compose run --rm --user root app chown -R 1000:1000 /data` o recrea el volumen.
 - Para conservar los datos entre reinicios en un servidor, define `RECEIPT_ENCRYPTION_KEY` (si no, la clave se guarda en el mismo volumen).
@@ -109,8 +108,8 @@ docker compose up -d                                 # abre http://localhost:850
 
 `.github/workflows/ci.yml` se ejecuta en cada push y pull request:
 
-1. **Pruebas:** `pytest` con Python 3.11 y 3.12 (EasyOCR se omite porque las pruebas lo simulan).
-2. **Imagen Docker:** construye la imagen, la arranca y comprueba `/_stcore/health` y que los módulos de la app y EasyOCR se importan dentro del contenedor.
+1. **Pruebas:** `pytest` con Python 3.11 y 3.12 (PaddleOCR se omite porque las pruebas lo simulan).
+2. **Imagen Docker:** construye la imagen, la arranca y comprueba `/_stcore/health`, que los módulos de la app y PaddleOCR se importan dentro del contenedor y que PaddleOCR lee una imagen de prueba.
 
 ## Estructura
 
@@ -122,7 +121,7 @@ docker compose up -d                                 # abre http://localhost:850
  ├── privacy.py          # Enmascarado de DNI, tarjetas y RUC de persona natural
  ├── crypto_service.py   # Cifrado en reposo de imágenes y texto OCR (Fernet)
  ├── nl_query.py         # Preguntas en lenguaje natural: reglas + Claude opcional
- ├── ocr_service.py      # OpenCV, EasyOCR y reglas de extracción A/B
+ ├── ocr_service.py      # OpenCV, PaddleOCR y reglas de extracción A/B
  ├── repository.py       # SQLite y persistencia atómica de imágenes
  ├── auth_service.py     # PBKDF2, verificación y lectura de la cuenta
  ├── create_user.py      # Alta de cuenta local interactiva
@@ -144,7 +143,7 @@ docker compose up -d                                 # abre http://localhost:850
  │   └── test_ui_capture.py      # Flujo completo archivo/cámara → OCR → revisión → guardado
  ├── .github/workflows/
  │   └── ci.yml          # Pruebas + construcción y arranque de la imagen Docker
- ├── Dockerfile          # Imagen solo-CPU con modelos EasyOCR precargados
+ ├── Dockerfile          # Imagen solo-CPU con modelos PaddleOCR precargados
  ├── deploy/             # Despliegue en Hugging Face Spaces (guía y script de publicación)
  ├── docker-compose.yml  # Servicio con volumen persistente para /data
  ├── requirements.txt
@@ -163,7 +162,7 @@ docker compose up -d                                 # abre http://localhost:850
 5. **Rotación:** se rota por el mismo ángulo medido (en coordenadas de imagen un ángulo positivo es una inclinación horaria y `getRotationMatrix2D` gira en sentido antihorario con ángulos positivos), con `cv2.getRotationMatrix2D` y `cv2.warpAffine` con `cv2.INTER_CUBIC`, lienzo expandido para evitar recortes y fondo blanco (`255`).
 6. **Contraste local:** `cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(gray)`.
 7. **Denoising:** `cv2.bilateralFilter(image, d=5, sigmaColor=35, sigmaSpace=35)`.
-8. **Codificación de salida:** PNG con `cv2.imencode('.png', ..., [cv2.IMWRITE_PNG_COMPRESSION, 3])`; esta copia se entrega a EasyOCR y se conserva por separado para evidencia.
+8. **Codificación de salida:** PNG con `cv2.imencode('.png', ..., [cv2.IMWRITE_PNG_COMPRESSION, 3])`; esta copia se entrega a PaddleOCR y se conserva por separado para evidencia.
 
 Los parámetros son punto de partida reproducible; deben compararse con imágenes originales y procesadas del conjunto de ajuste real antes de afirmar que mejoran la exactitud.
 
@@ -199,7 +198,7 @@ Las pruebas se ejecutan sobre una carpeta de datos temporal (nunca tocan `data/`
 
 ## Experimentos del Avance 2
 
-La carpeta `experimentos/` contiene una muestra de 5 boletas **reales anonimizadas**, sus valores de referencia, los scripts que comparan EasyOCR y Tesseract con el pipeline real y los resultados obtenidos. Las instrucciones para reproducirlos están en `experimentos/README.md`.
+La carpeta `experimentos/` contiene una muestra de 5 boletas **reales anonimizadas**, sus valores de referencia, los scripts que comparan EasyOCR, Tesseract, RapidOCR y PaddleOCR con el pipeline real (EasyOCR ya no es dependencia: para reproducir sus rondas, `pip install easyocr`) y los resultados obtenidos. Las instrucciones para reproducirlos están en `experimentos/README.md`.
 
 ## Limitaciones conocidas
 

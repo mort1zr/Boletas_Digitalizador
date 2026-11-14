@@ -1,0 +1,184 @@
+{
+  "entorno": {
+    "fecha_ejecucion": "2026-11-12T18:36:00",
+    "python": "3.13.18",
+    "sistema": "Linux-6.18.44-fc-v378-x86_64-with-glibc2.39",
+    "procesador": "x86_64",
+    "opencv": "5.0.0",
+    "nucleos_cpu": 4
+  },
+  "resultados": [
+    {
+      "motor": "easyocr",
+      "version": "EasyOCR 1.7.2 (PyTorch 2.15.0+cu132, CPU)",
+      "n": 6,
+      "exactitud_fecha": 33.3,
+      "exactitud_comercio": 16.7,
+      "exactitud_total": 50.0,
+      "exactitud_global_campos": 33.3,
+      "exactitud_por_comprobante": 0.0,
+      "similitud_comercio_media": 0.32,
+      "comercio_aprox_090": 33.3,
+      "t_medio_s": 11.16,
+      "t_desv_s": 1.21,
+      "t_min_s": 9.32,
+      "t_max_s": 13.11,
+      "t_ocr_medio_s": 11.07,
+      "t_preproceso_medio_s": 0.091,
+      "arranque_s": 4.49,
+      "por_formato": {
+        "A": {
+          "n": 4,
+          "fecha": 0.0,
+          "comercio": 25.0,
+          "total": 25.0,
+          "comprobante": 0.0
+        },
+        "B": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "C": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        }
+      },
+      "por_condicion": {
+        "arrugada": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "arrugada_y_reflejo": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "bien_tomada": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "fondo_madera_vertical": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "inclinada_y_tenue": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "sello_y_papel_coloreado": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 100.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        }
+      }
+    },
+    {
+      "motor": "tesseract",
+      "version": "Tesseract 5.3.4 (pytesseract, '--oem 1 --psm 6', idioma spa)",
+      "n": 6,
+      "exactitud_fecha": 66.7,
+      "exactitud_comercio": 16.7,
+      "exactitud_total": 50.0,
+      "exactitud_global_campos": 44.4,
+      "exactitud_por_comprobante": 0.0,
+      "similitud_comercio_media": 0.569,
+      "comercio_aprox_090": 33.3,
+      "t_medio_s": 0.9,
+      "t_desv_s": 0.48,
+      "t_min_s": 0.33,
+      "t_max_s": 1.89,
+      "t_ocr_medio_s": 0.81,
+      "t_preproceso_medio_s": 0.092,
+      "arranque_s": 0.0,
+      "por_formato": {
+        "A": {
+          "n": 4,
+          "fecha": 50.0,
+          "comercio": 25.0,
+          "total": 25.0,
+          "comprobante": 0.0
+        },
+        "B": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "C": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        }
+      },
+      "por_condicion": {
+        "arrugada": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "arrugada_y_reflejo": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "bien_tomada": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "fondo_madera_vertical": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "inclinada_y_tenue": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "sello_y_papel_coloreado": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        }
+      }
+    }
+  ]
+}

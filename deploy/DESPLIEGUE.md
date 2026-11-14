@@ -3,13 +3,13 @@
 ## ¿Por qué no Vercel?
 
 Vercel ejecuta funciones serverless de corta duración con un límite de 250 MB. Streamlit necesita un
-servidor que permanezca encendido (usa WebSockets) y la aplicación incluye PyTorch y EasyOCR, que
-pesan varios GB. Por eso se despliega como **contenedor Docker**, que es la imagen que ya construye
+servidor que permanezca encendido (usa WebSockets) y la aplicación incluye PaddlePaddle y PaddleOCR, que
+pesan cientos de MB. Por eso se despliega como **contenedor Docker**, que es la imagen que ya construye
 la integración continua del repositorio.
 
 ## Opción recomendada: Hugging Face Spaces (Docker, gratis)
 
-El plan gratuito ofrece 2 vCPU y 16 GB de RAM, suficiente para EasyOCR en CPU (unos 10 s por boleta).
+El plan gratuito ofrece 2 vCPU y 16 GB de RAM, suficiente para PaddleOCR en CPU (unos 10 s por boleta, con variación según el largo del ticket).
 
 1. Crea el Space en <https://huggingface.co/new-space>: **SDK = Docker**, visibilidad **Privada**.
 2. En *Settings → Variables and secrets* agrega estos **secretos**:
@@ -29,7 +29,7 @@ El plan gratuito ofrece 2 vCPU y 16 GB de RAM, suficiente para EasyOCR en CPU (u
    ```
 
    El script copia **solo** el código necesario; no sube datos, pruebas ni las boletas de `experimentos/`.
-4. La primera construcción tarda varios minutos (descarga PyTorch y los modelos de EasyOCR). Luego abre la
+4. La primera construcción tarda varios minutos (descarga PaddlePaddle y los modelos de PaddleOCR). Luego abre la
    URL del Space e inicia sesión con `APP_USER` / `APP_PASSWORD`.
 
 ## Qué tener en cuenta

@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Imagen del Digitalizador de boletas (Streamlit + OpenCV + EasyOCR, solo CPU).
+# Imagen del Digitalizador de boletas (Streamlit + OpenCV + PaddleOCR, solo CPU).
 #
 #   docker build -t digitalizador-boletas .
 #   docker compose up -d
@@ -13,25 +13,32 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     RECEIPT_DATA_DIR=/data \
-    EASYOCR_MODULE_PATH=/opt/easyocr
+    PADDLE_PDX_CACHE_HOME=/opt/paddlex \
+    PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK=True
 
 WORKDIR /app
 
-# PyTorch solo-CPU: la app usa gpu=False y la variante CPU pesa varios GB menos
-# que la predeterminada con CUDA. Se instala antes que EasyOCR para que este la reutilice.
-# TORCH_INDEX_URL permite usar un espejo si download.pytorch.org no es accesible.
-ARG TORCH_INDEX_URL=https://download.pytorch.org/whl/cpu
-RUN pip install --index-url "${TORCH_INDEX_URL}" torch torchvision
+# Bibliotecas del sistema que necesitan OpenCV (PaddleOCR instala la variante con interfaz gráfica,
+# que carga libGL) y PaddlePaddle (OpenMP) en una imagen slim.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgomp1 libglib2.0-0 libgl1 \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Descarga los modelos de EasyOCR (es/en) durante la construcción para que el
-# contenedor funcione sin Internet. Con PRELOAD_MODELS=0 se descargan en el primer uso.
+# Descarga los modelos de PaddleOCR (detector y reconocedor latino, unos 13 MB) durante la
+# construcción para que el contenedor funcione sin Internet. Con PRELOAD_MODELS=0 se descargan
+# en el primer uso. Los servidores de modelos a veces cortan la conexión: se reintenta.
 ARG PRELOAD_MODELS=1
-RUN mkdir -p /opt/easyocr \
+RUN mkdir -p /opt/paddlex \
     && if [ "$PRELOAD_MODELS" = "1" ]; then \
-         python -c "import easyocr; easyocr.Reader(['es', 'en'], gpu=False, verbose=False)"; \
+         ok=0; \
+         for intento in 1 2 3 4; do \
+           if python -c "from paddleocr import PaddleOCR; PaddleOCR(text_detection_model_name='PP-OCRv5_mobile_det', text_recognition_model_name='latin_PP-OCRv5_mobile_rec', use_doc_orientation_classify=False, use_doc_unwarping=False, use_textline_orientation=False, enable_mkldnn=False)"; then ok=1; break; fi; \
+           echo "reintento $intento"; sleep 5; \
+         done; \
+         [ "$ok" = "1" ]; \
        fi
 
 COPY *.py ./
@@ -41,7 +48,7 @@ COPY .streamlit ./.streamlit
 # UID 1000: es el que usan Hugging Face Spaces y la mayoría de las plataformas de contenedores.
 RUN useradd --create-home --uid 1000 app \
     && mkdir -p /data \
-    && chown -R app:app /data /opt/easyocr
+    && chown -R app:app /data /opt/paddlex
 USER app
 VOLUME ["/data"]
 

@@ -8,7 +8,7 @@ app_port: 8501
 pinned: false
 ---
 
-Digitalizador inteligente de boletas de compra: OpenCV + EasyOCR + SQLite + Streamlit.
+Digitalizador inteligente de boletas de compra: OpenCV + PaddleOCR + SQLite + Streamlit.
 Prototipo académico (curso Tecnologías Emergentes, USIL). La extracción automática es una
 propuesta que la persona debe revisar y confirmar antes de guardar.
 

@@ -1,4 +1,4 @@
-"""Preprocesamiento OpenCV y extracción heurística de campos mediante EasyOCR.
+"""Preprocesamiento OpenCV, OCR con PaddleOCR y extracción heurística de campos.
 
 Parámetros del pipeline documentados:
 - Decodificación: cv2.IMREAD_COLOR.
@@ -8,11 +8,13 @@ Parámetros del pipeline documentados:
   maxLineGap=20); solo se aceptan líneas con |ángulo| <= 15 grados.
 - Rotación: interpolación INTER_CUBIC y bordes blancos (255), ampliando el lienzo
   para evitar recortar los bordes de la boleta.
-- Contraste: CLAHE clipLimit=2.0 y tileGridSize=(8, 8).
-- Reducción de ruido: bilateralFilter(d=5, sigmaColor=35, sigmaSpace=35).
-- EasyOCR: idiomas español e inglés, gpu=False; readtext con detail=1,
-  paragraph=False, min_size=8, text_threshold=0.6, low_text=0.3,
-  link_threshold=0.4, contrast_ths=0.1, adjust_contrast=0.7 y mag_ratio=1.5.
+- Contraste (opcional, ``enhance=True``): CLAHE clipLimit=2.0 y tileGridSize=(8, 8).
+- Reducción de ruido (opcional): bilateralFilter(d=5, sigmaColor=35, sigmaSpace=35).
+- Recorte de la boleta (opcional, ``crop_document=True``): región clara más grande y perspectiva.
+- PaddleOCR 3.x (CPU): detector PP-OCRv5_mobile_det y reconocedor latin_PP-OCRv5_mobile_rec
+  (alfabeto latino: español con tildes y ñ), sin los módulos de orientación del documento, de
+  desdistorsión ni de orientación de línea; oneDNN desactivado (falla en CPU con PaddlePaddle 3.3).
+  Los pesos se descargan la primera vez (carpeta PADDLE_PDX_CACHE_HOME) o se toman de PADDLE_MODELOS.
 
 Las reglas A/B son heurísticas iniciales. Los documentos de planificación no aportan
 imágenes reales de boletas ni especifican su diseño visual; es necesario validarlas
@@ -21,6 +23,7 @@ con el conjunto de ajuste del equipo.
 from __future__ import annotations
 
 import math
+import os
 import re
 import unicodedata
 from dataclasses import asdict, dataclass
@@ -59,6 +62,7 @@ class PreprocessedImage:
     image: np.ndarray
     png_bytes: bytes
     rotation_degrees: float
+    cropped: bool = False
 
 
 _DATE_RE = re.compile(r"(?<!\d)(\d{1,4})\s*[./-]\s*(\d{1,2})\s*[./-]\s*(\d{2,4})(?!\d)")
@@ -178,8 +182,64 @@ def _estimate_skew(gray: np.ndarray) -> float:
     return 0.0
 
 
-def preprocess_image(image_bytes: bytes) -> PreprocessedImage:
-    """Decodifica, corrige contraste/inclinación y devuelve PNG procesado sin alterar el original."""
+def _order_corners(points: np.ndarray) -> np.ndarray:
+    """Ordena 4 puntos como superior-izq., superior-der., inferior-der., inferior-izq."""
+    by_sum, by_diff = points.sum(axis=1), np.diff(points, axis=1).ravel()
+    return np.array([points[by_sum.argmin()], points[by_diff.argmin()], points[by_sum.argmax()], points[by_diff.argmax()]], dtype=np.float32)
+
+
+def _crop_document(image: np.ndarray) -> np.ndarray | None:
+    """Recorta y endereza el papel de la boleta cuando se distingue del fondo.
+
+    Busca la región clara más grande (el papel sobre una mesa, madera o tela oscura), toma su
+    rectángulo mínimo y corrige la perspectiva. Devuelve ``None`` si la foto ya es solo papel o
+    si no hay un contraste claro con el fondo; entonces el pipeline sigue con la imagen completa.
+    """
+    height, width = image.shape[:2]
+    scale = 800.0 / max(height, width)
+    small = cv2.resize(image, (max(1, int(width * scale)), max(1, int(height * scale))), interpolation=cv2.INTER_AREA)
+    gray = cv2.GaussianBlur(cv2.cvtColor(small, cv2.COLOR_BGR2GRAY), (7, 7), 0)
+    threshold, mask = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    close_size = max(5, int(min(small.shape[:2]) * 0.04))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_RECT, (close_size, close_size)))
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        return None
+    contour = max(contours, key=cv2.contourArea)
+    fraction = cv2.contourArea(contour) / float(small.shape[0] * small.shape[1])
+    if not 0.12 <= fraction <= 0.92:
+        return None
+    filled = np.zeros_like(mask)
+    cv2.drawContours(filled, [contour], -1, 255, thickness=cv2.FILLED)
+    inside, outside = gray[filled > 0], gray[filled == 0]
+    if outside.size == 0 or float(inside.mean()) - float(outside.mean()) < 40.0:
+        return None  # sin contraste claro: no se arriesga a recortar texto
+    approx = cv2.approxPolyDP(cv2.convexHull(contour), 0.02 * cv2.arcLength(contour, True), True)
+    corners = approx.reshape(-1, 2).astype(np.float32) if len(approx) == 4 else cv2.boxPoints(cv2.minAreaRect(contour))
+    corners = _order_corners(np.asarray(corners, dtype=np.float32)) / scale
+    top_left, top_right, bottom_right, bottom_left = corners
+    out_width = int(round(max(np.linalg.norm(top_right - top_left), np.linalg.norm(bottom_right - bottom_left))))
+    out_height = int(round(max(np.linalg.norm(bottom_left - top_left), np.linalg.norm(bottom_right - top_right))))
+    if out_width < width * 0.15 or out_height < height * 0.15:
+        return None
+    # Margen del 1 % para no cortar el borde del texto.
+    centre = corners.mean(axis=0)
+    corners = (centre + (corners - centre) * 1.01).astype(np.float32)
+    destination = np.array([[0, 0], [out_width - 1, 0], [out_width - 1, out_height - 1], [0, out_height - 1]], dtype=np.float32)
+    matrix = cv2.getPerspectiveTransform(corners, destination)
+    return cv2.warpPerspective(image, matrix, (out_width, out_height), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
+
+
+def preprocess_image(image_bytes: bytes, crop_document: bool = False, enhance: bool = False) -> PreprocessedImage:
+    """Decodifica, endereza y devuelve la imagen procesada para el OCR sin alterar el original.
+
+    ``crop_document`` recorta el papel del fondo y corrige la perspectiva; ``enhance`` aplica CLAHE y
+    filtro bilateral. Ambos están desactivados por defecto: en las 6 boletas reales del proyecto
+    (experimentos/resultados/ronda3_preprocesado.md) la imagen en gris sin realce dio más campos
+    correctos tanto con EasyOCR como con Tesseract (ronda 3), porque el realce amplifica el grano de la
+    impresión térmica y el recorte no fue consistente. Se conservan como opciones hasta validarlos
+    con una muestra mayor.
+    """
     if not image_bytes:
         raise ValueError("El archivo de imagen está vacío.")
     encoded = np.frombuffer(image_bytes, dtype=np.uint8)
@@ -197,6 +257,12 @@ def preprocess_image(image_bytes: bytes) -> PreprocessedImage:
             interpolation=cv2.INTER_AREA,
         )
 
+    cropped = False
+    if crop_document:
+        document = _crop_document(original)
+        if document is not None:
+            original, cropped = document, True
+
     gray = cv2.cvtColor(original, cv2.COLOR_BGR2GRAY)
     rotation = _estimate_skew(gray)
     if abs(rotation) >= 0.15:
@@ -205,23 +271,15 @@ def preprocess_image(image_bytes: bytes) -> PreprocessedImage:
         # antihorario con ángulos positivos, así que rotar +rotation la endereza.
         gray = _rotate_expand(gray, rotation)
 
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    contrast = clahe.apply(gray)
-    denoised = cv2.bilateralFilter(contrast, d=5, sigmaColor=35, sigmaSpace=35)
+    if enhance:
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        denoised = cv2.bilateralFilter(clahe.apply(gray), d=5, sigmaColor=35, sigmaSpace=35)
+    else:
+        denoised = gray
     ok, png_encoded = cv2.imencode(".png", denoised, [cv2.IMWRITE_PNG_COMPRESSION, 3])
     if not ok:
         raise RuntimeError("No se pudo codificar la imagen procesada.")
-    return PreprocessedImage(image=denoised, png_bytes=png_encoded.tobytes(), rotation_degrees=rotation)
-
-
-@lru_cache(maxsize=1)
-def _reader():
-    try:
-        import easyocr
-    except ImportError as exc:
-        raise RuntimeError("EasyOCR no está instalado. Ejecuta: pip install -r requirements.txt") from exc
-    # Los pesos preentrenados se descargan la primera vez que se ejecuta el OCR.
-    return easyocr.Reader(["es", "en"], gpu=False, verbose=False)
+    return PreprocessedImage(image=denoised, png_bytes=png_encoded.tobytes(), rotation_degrees=rotation, cropped=cropped)
 
 
 def _group_ocr_results(results: Sequence[Any]) -> list[OCRLine]:
@@ -269,24 +327,56 @@ def _group_ocr_results(results: Sequence[Any]) -> list[OCRLine]:
     return sorted(lines, key=lambda line: (line.y_center, line.x_left))
 
 
+DETECTION_MODEL = "PP-OCRv5_mobile_det"
+RECOGNITION_MODEL = "latin_PP-OCRv5_mobile_rec"
+
+
+class PaddleReader:
+    """Envoltorio de PaddleOCR que devuelve (caja, texto, confianza), el formato que usa ``_group_ocr_results``."""
+
+    def __init__(self, engine: Any) -> None:
+        self._engine = engine
+
+    def read(self, image: np.ndarray) -> list[tuple[list[list[float]], str, float]]:
+        # PaddleOCR espera una imagen de 3 canales; la copia procesada es de un solo canal.
+        bgr = cv2.cvtColor(image, cv2.COLOR_GRAY2BGR) if image.ndim == 2 else image
+        items: list[tuple[list[list[float]], str, float]] = []
+        for page in self._engine.predict(bgr):
+            for polygon, text, score in zip(page["rec_polys"], page["rec_texts"], page["rec_scores"]):
+                items.append((np.asarray(polygon, dtype=float).tolist(), str(text), float(score)))
+        return items
+
+
+@lru_cache(maxsize=1)
+def _reader() -> PaddleReader:
+    # Evita la comprobación de conectividad de PaddleX al arrancar (lenta o bloqueada sin Internet).
+    os.environ.setdefault("PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK", "True")
+    try:
+        from paddleocr import PaddleOCR
+    except ImportError as exc:
+        raise RuntimeError("PaddleOCR no está instalado. Ejecuta: pip install -r requirements.txt") from exc
+    options: dict[str, Any] = {
+        "text_detection_model_name": DETECTION_MODEL,
+        "text_recognition_model_name": RECOGNITION_MODEL,
+        "use_doc_orientation_classify": False,
+        "use_doc_unwarping": False,
+        "use_textline_orientation": False,
+        "enable_mkldnn": False,
+    }
+    local_models = os.environ.get("PADDLE_MODELOS", "").strip()
+    if local_models:  # modelos ya descargados: DETECTION_MODEL_infer y RECOGNITION_MODEL_infer
+        options["text_detection_model_dir"] = f"{local_models}/{DETECTION_MODEL}_infer"
+        options["text_recognition_model_dir"] = f"{local_models}/{RECOGNITION_MODEL}_infer"
+    # Los pesos preentrenados se descargan la primera vez que se ejecuta el OCR.
+    return PaddleReader(PaddleOCR(**options))
+
+
 def run_ocr(processed_image: np.ndarray) -> tuple[list[OCRLine], str]:
     reader = _reader()
-    results = reader.readtext(
-        processed_image,
-        detail=1,
-        paragraph=False,
-        min_size=8,
-        text_threshold=0.6,
-        low_text=0.3,
-        link_threshold=0.4,
-        contrast_ths=0.1,
-        adjust_contrast=0.7,
-        mag_ratio=1.5,
-    )
-    lines = _group_ocr_results(results)
+    lines = _group_ocr_results(reader.read(processed_image))
     raw_text = "\n".join(line.text for line in lines)
     if not raw_text.strip():
-        raise RuntimeError("EasyOCR no reconoció texto. Vuelve a intentar o carga una imagen más nítida.")
+        raise RuntimeError("El OCR no reconoció texto. Vuelve a intentar o carga una imagen más nítida.")
     return lines, raw_text
 
 
@@ -304,7 +394,36 @@ def _parse_date_match(match: re.Match[str]) -> str | None:
         return None
 
 
+_DIGIT_LOOKALIKES = str.maketrans({"O": "0", "o": "0", "Q": "0", "D": "0", "I": "1", "l": "1", "|": "1", "!": "1", "S": "5", "B": "8", "Z": "2"})
+# Fecha con posibles letras en lugar de dígitos: "1O/II/06", "12/l1/26".
+_DATE_LOOSE_RE = re.compile(r"(?<![0-9A-Za-z])([0-9OoQDIl|!SBZ]{1,2})\s*([./-])\s*([0-9OoQDIl|!SBZ]{1,2})\s*\2\s*([0-9OoQDIl|!SBZ]{2}(?:[0-9OoQDIl|!SBZ]{2})?)(?![0-9A-Za-z])")
+# Año de 4 dígitos pegado a la hora: "12/11/202608:57".
+_DATE_GLUED_TIME_RE = re.compile(r"((?<!\d)\d{1,2}\s*[./-]\s*\d{1,2}\s*[./-]\s*(?:19|20)\d{2})(?=\d{2}\s*:\s*\d{2})")
+_DATE_LABEL_RE = re.compile(r"(?i)\bfecha\b|\bemisi[oó]n\b")
+
+
+def _repair_date_text(text: str) -> str:
+    """Corrige errores típicos del OCR en una línea de fecha antes de buscar el patrón."""
+    text = _DATE_GLUED_TIME_RE.sub(lambda m: m.group(1) + " ", text)
+    # Las letras solo se tratan como dígitos si la línea está etiquetada como fecha o si, tras
+    # corregirlas, queda una fecha de calendario válida: evita convertir palabras en fechas.
+    def fix(match: re.Match[str]) -> str:
+        parts = [match.group(1), match.group(3), match.group(4)]
+        if not any(ch.isalpha() or ch in "|!" for part in parts for ch in part):
+            return match.group(0)
+        fixed = [part.translate(_DIGIT_LOOKALIKES) for part in parts]
+        if not all(part.isdigit() for part in fixed):
+            return match.group(0)
+        candidate = re.match(_DATE_RE, f"{fixed[0]}/{fixed[1]}/{fixed[2]}")
+        if candidate is None or _parse_date_match(candidate) is None:
+            return match.group(0)
+        return f"{fixed[0]}/{fixed[1]}/{fixed[2]}"
+
+    return _DATE_LOOSE_RE.sub(fix, text)
+
+
 def _extract_date(lines: Sequence[OCRLine]) -> str:
+    lines = [OCRLine(_repair_date_text(line.text), line.confidence, line.y_center, line.x_left) for line in lines]
     candidates: dict[str, float] = {}
     normalised_exclusions = _DATE_EXCLUSION_NORMALISED
     normalised_preferred = _DATE_PREFERRED_NORMALISED
@@ -333,6 +452,11 @@ def _extract_date(lines: Sequence[OCRLine]) -> str:
     return ranked[0][0]
 
 
+_LEGAL_FORM_RE = re.compile(r"\b(S\.?\s?A\.?\s?C\.?|S\.?\s?R\.?\s?L\.?|E\.?\s?I\.?\s?R\.?\s?L\.?|S\.?\s?A\.?)(?=\s|$|[^A-Za-z])", re.I)
+_RUC_LABEL_RE = re.compile(r"\bR\.?U\.?C\b")
+_ADDRESS_RE = re.compile(r"^(?:AV|AVDA|AVENIDA|JR|JIRON|CAL|CALLE|PSJE|PASAJE|PROLONGACION|URB|MZ|LT|GALERIA|CC|C\.C)\b[. ]")
+
+
 def _extract_merchant(lines: Sequence[OCRLine]) -> str:
     candidates: list[tuple[float, int, str]] = []
     for index, line in enumerate(lines[:8]):
@@ -348,8 +472,16 @@ def _extract_merchant(lines: Sequence[OCRLine]) -> str:
             continue
         # Se priorizan las líneas al inicio sin depender exclusivamente de mayúsculas.
         score = (max(0.0, 6.0 - index) * 0.65) + line.confidence * 1.8
-        if re.search(r"\b(S\.?A\.?C\.?|S\.?R\.?L\.?|E\.?I\.?R\.?L\.?)\b", text, re.I):
+        before_ruc = index + 1 < len(lines) and bool(_RUC_LABEL_RE.search(_normalise_text(lines[index + 1].text)))
+        if _LEGAL_FORM_RE.search(text):
             score += 0.25
+            # La razón social impresa justo antes del RUC es la mejor evidencia del comercio.
+            if before_ruc or any(_RUC_LABEL_RE.search(_normalise_text(near.text)) for near in lines[index + 1:index + 4]):
+                score += 2.0
+        elif before_ruc:
+            score += 1.5  # nombre de persona natural o nombre comercial impreso encima del RUC
+        if _ADDRESS_RE.match(normal):
+            score -= 1.5
         candidates.append((score, index, text))
     if not candidates:
         return ""
@@ -434,6 +566,30 @@ def _total_label_score(normal: str) -> float:
     return -1.0
 
 
+# «DESCRIPCION  P.U.  TOTAL» es el encabezado de la tabla de ítems, no el total a pagar.
+_COLUMN_HEADER_RE = re.compile(r"\bDESCRIPCION\b|\bP\.?\s?U\.?\b|\bPRECIO\b|\bCANT(?:IDAD)?\b|\bARTICULO\b|\bIMPORTE\s+TOTAL\s+IGV\b")
+# Línea que es solo un importe: «S/ 175.20» (los vouchers de POS no siempre dicen «TOTAL»).
+_ONLY_AMOUNT_RE = re.compile(r"^\W{0,3}(?:S|5|\$)\s*/?\.?\s*(\d{1,3}(?:[.,]\d{3})*[.,]\d{2}|\d+[.,]\d{2})\W{0,3}$", re.I)
+
+
+_VOUCHER_MARKER_RE = re.compile(r"\b(?:VISA|MASTERCARD|MASTER|AMEX|DINERS|TARJETA|DEBITO|CREDITO|TERM|LOTE|REF|AP|VENTA\s*-?\s*ID|APROBADA|COPIA\s+(?:CLIENTE|PARA\s+EL\s+CLIENTE|DE\s+COMPRA))\b")
+
+
+def _isolated_amount(lines: Sequence[OCRLine]) -> str:
+    """Total de un voucher de POS sin etiqueta: el único importe que ocupa una línea completa.
+
+    Solo se usa si el documento parece un voucher de tarjeta (al menos dos marcas como VISA, TERM,
+    LOTE, REF o «COPIA CLIENTE»); en una boleta con ítems no se adivina el total sin etiqueta.
+    """
+    markers = {m.group(0) for line in lines for m in _VOUCHER_MARKER_RE.finditer(_normalise_text(line.text))}
+    if len(markers) < 2:
+        return ""
+    found = {parse_amount(m.group(1)) for line in lines if (m := _ONLY_AMOUNT_RE.match(line.text.strip())) and line.confidence >= 0.35}
+    found.discard(None)
+    found = {amount for amount in found if amount and amount > 0}
+    return _format_cents(found.pop()) if len(found) == 1 else ""
+
+
 def _extract_total(lines: Sequence[OCRLine], receipt_format: str) -> str:
     scored: list[tuple[float, int, int]] = []  # puntaje, índice de línea, céntimos
     for index, line in enumerate(lines):
@@ -443,7 +599,8 @@ def _extract_total(lines: Sequence[OCRLine], receipt_format: str) -> str:
             continue
         amounts = _line_amounts(line.text)
         amount_index = index
-        if not amounts and index + 1 < len(lines):
+        same_line = bool(amounts)
+        if not amounts and index + 1 < len(lines) and not _COLUMN_HEADER_RE.search(normal):
             next_normal = _normalise_text(lines[index + 1].text)
             if not _is_excluded_amount_line(next_normal) and not _DATE_RE.search(lines[index + 1].text):
                 amounts = _line_amounts(lines[index + 1].text)
@@ -453,7 +610,7 @@ def _extract_total(lines: Sequence[OCRLine], receipt_format: str) -> str:
             continue
         # Un total etiquetado normalmente tiene un solo importe; con varios, el final suele ser el total.
         amount = positive_amounts[-1]
-        score = label_score + line.confidence
+        score = label_score + line.confidence + (1.5 if same_line else 0.0)
         if receipt_format.upper() == "B":
             score += min(index / max(1, len(lines)), 1.0) * 0.35
         scored.append((score, amount_index, amount))
@@ -490,6 +647,83 @@ def _extract_total(lines: Sequence[OCRLine], receipt_format: str) -> str:
     return _format_cents(fallback[0][2])
 
 
+_UNIDADES = {
+    "CERO": 0, "UN": 1, "UNO": 1, "UNA": 1, "DOS": 2, "TRES": 3, "CUATRO": 4, "CINCO": 5, "SEIS": 6, "SIETE": 7,
+    "OCHO": 8, "NUEVE": 9, "DIEZ": 10, "ONCE": 11, "DOCE": 12, "TRECE": 13, "CATORCE": 14, "QUINCE": 15,
+    "DIECISEIS": 16, "DIECISIETE": 17, "DIECIOCHO": 18, "DIECINUEVE": 19, "VEINTE": 20, "VEINTIUN": 21,
+    "VEINTIUNO": 21, "VEINTIUNA": 21, "VEINTIDOS": 22, "VEINTITRES": 23, "VEINTICUATRO": 24, "VEINTICINCO": 25,
+    "VEINTISEIS": 26, "VEINTISIETE": 27, "VEINTIOCHO": 28, "VEINTINUEVE": 29,
+}
+_DECENAS = {"TREINTA": 30, "CUARENTA": 40, "CINCUENTA": 50, "SESENTA": 60, "SETENTA": 70, "OCHENTA": 80, "NOVENTA": 90}
+_CENTENAS = {
+    "CIEN": 100, "CIENTO": 100, "DOSCIENTOS": 200, "TRESCIENTOS": 300, "CUATROCIENTOS": 400, "QUINIENTOS": 500,
+    "SEISCIENTOS": 600, "SETECIENTOS": 700, "OCHOCIENTOS": 800, "NOVECIENTOS": 900,
+}
+# «SON: CUATRO Y 00/100 SOLES», «Son: Ciento veinte con 50/100 soles».
+_SON_RE = re.compile(r"\bSON\b\s*:?\s*(?P<letras>[A-Z\s]+?)\s*(?:Y|CON)?\s*(?P<cent>\d{1,2})\s*/\s*100\b")
+
+
+def _words_to_int(words: Sequence[str]) -> int | None:
+    """Convierte palabras en español (hasta 999 999) a entero; ``None`` si alguna no se reconoce."""
+    total, current, seen = 0, 0, False
+    for word in words:
+        if word == "Y":
+            continue
+        if word in _UNIDADES:
+            current += _UNIDADES[word]
+        elif word in _DECENAS:
+            current += _DECENAS[word]
+        elif word in _CENTENAS:
+            current += _CENTENAS[word]
+        elif word == "MIL":
+            total += (current or 1) * 1000
+            current = 0
+        else:
+            return None
+        seen = True
+    return total + current if seen else None
+
+
+def amount_in_words(text: str) -> int | None:
+    """Importe en céntimos escrito en letras al pie de la boleta («SON: CUATRO Y 00/100 SOLES»)."""
+    normal = _normalise_text(text)
+    match = _SON_RE.search(normal)
+    if not match:
+        return None
+    units = _words_to_int(match.group("letras").split())
+    if units is None:
+        return None
+    return units * 100 + int(match.group("cent").ljust(2, "0")[:2])
+
+
+def _crosscheck_total(lines: Sequence[OCRLine], total: str) -> tuple[str, str | None]:
+    """Contrasta el total con el importe en letras. Devuelve (total, aviso o None).
+
+    El importe en letras es independiente del número impreso: si ambos difieren, uno de los dos
+    se leyó mal. Si el valor en letras aparece como importe en alguna otra línea, se adopta
+    (lo respaldan dos lecturas); si no, se conserva el total y se avisa para revisarlo.
+    """
+    in_words = None
+    for line in lines:
+        in_words = amount_in_words(line.text)
+        if in_words is not None:
+            break
+    if in_words is None:
+        return total, None
+    spoken = _format_cents(in_words)
+    if total and parse_amount(total) == in_words:
+        return total, None
+    # Importes impresos en otras líneas (la propia línea «SON: …/100» no cuenta como respaldo).
+    printed = {amount for line in lines if not _SON_RE.search(_normalise_text(line.text)) for amount in _line_amounts(line.text)}
+    if not total:
+        if in_words in printed:
+            return spoken, "El total se tomó del importe en letras (\"SON: …\"), que coincide con un importe impreso; confírmalo."
+        return "", f"El importe en letras indica S/ {spoken}, pero no se pudo leer el total numérico; verifícalo."
+    if in_words in printed:
+        return spoken, f"El total leído ({total}) no coincidía con el importe en letras; se corrigió a {spoken}. Verifícalo."
+    return total, f"El total leído ({total}) no coincide con el importe en letras (S/ {spoken}); revisa cuál es correcto."
+
+
 def _format_cents(cents: int) -> str:
     return f"{(Decimal(cents) / Decimal(100)):.2f}"
 
@@ -501,7 +735,7 @@ _SPACE_BEFORE_DOT_RE = re.compile(r"(?<=[A-Za-zÁÉÍÓÚÑáéíóúñ])\s+\.(?
 def normalise_ocr_spacing(text: str) -> str:
     """Corrige espacios que el OCR inserta al unir cajas de texto vecinas.
 
-    Los detectores por regiones (p. ej. CRAFT en EasyOCR) pueden separar un importe
+    Los detectores por regiones (p. ej. los detectores de EasyOCR o PaddleOCR) pueden separar un importe
     en dos cajas ("65" y ".50"); al unirlas en una línea queda "65 .50" y el importe
     se lee mal. También aparece "S.A.C ." en razones sociales. La corrección es
     genérica y se aplica igual a cualquier motor OCR.
@@ -537,6 +771,10 @@ def extract_fields(lines: Iterable[OCRLine | dict[str, Any] | str], receipt_form
     detected_date = _extract_date(normalised_lines)
     merchant = _extract_merchant(normalised_lines)
     total = _extract_total(normalised_lines, receipt_format)
+    isolated_notice = None
+    if not total and (total := _isolated_amount(normalised_lines)):
+        isolated_notice = f"El total (S/ {total}) se tomó del único importe aislado de la boleta, sin etiqueta «TOTAL»; verifícalo."
+    total, total_notice = _crosscheck_total(normalised_lines, total)
     warnings: list[str] = []
     if not detected_date:
         warnings.append("No se detectó una fecha suficientemente confiable; complétala o corrígela manualmente.")
@@ -544,6 +782,10 @@ def extract_fields(lines: Iterable[OCRLine | dict[str, Any] | str], receipt_form
         warnings.append("No se identificó con suficiente confianza el comercio; revisa el nombre manualmente.")
     if not total:
         warnings.append("No se identificó un total inequívoco; verifica que no sea subtotal, impuesto ni vuelto.")
+    if isolated_notice and total and not total_notice:
+        warnings.append(isolated_notice)
+    if total_notice:
+        warnings.append(total_notice)
     return ReceiptFields(detected_date, merchant, total, tuple(warnings))
 
 
@@ -557,5 +799,6 @@ def process_receipt(image_bytes: bytes, receipt_format: str = "A") -> dict[str, 
         "fields": fields.to_dict(),
         "processed_png": processed.png_bytes,
         "rotation_degrees": processed.rotation_degrees,
+        "cropped": processed.cropped,
         "processed_shape": list(processed.image.shape),
     }

@@ -5,7 +5,8 @@ opencv-python-headless>=4.9.0
 numpy>=1.26.0
 Pillow>=10.0.0
 pillow-heif>=0.18.0  # fotos HEIC/HEIF de iPhone y Samsung
-easyocr>=1.7.1
+paddlepaddle==3.3.1  # motor de inferencia de PaddleOCR (CPU)
+paddleocr==3.7.0     # OCR: detector PP-OCRv5 + reconocedor latino
 pytest>=8.0.0
 cryptography>=43.0.0   # cifrado en reposo (Fernet)
 anthropic>=1.0.0       # opcional: preguntas en lenguaje natural con Claude
