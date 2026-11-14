@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import platform
 import re
 import statistics
@@ -99,8 +100,17 @@ def lineas_paddleocr(imagen: np.ndarray) -> list[OCRLine]:
     if "paddleocr" not in _MOTOR_CACHE:
         from paddleocr import PaddleOCR
 
-        _MOTOR_CACHE["paddleocr"] = PaddleOCR(lang="es", use_doc_orientation_classify=False, use_doc_unwarping=False,
-                                              use_textline_orientation=False)
+        # PADDLE_MODELOS: carpeta con PP-OCRv5_mobile_det_infer y latin_PP-OCRv5_mobile_rec_infer ya descargados
+        # (útil sin acceso directo a los servidores de modelos). Sin ella, PaddleOCR descarga sus modelos.
+        carpeta = os.environ.get("PADDLE_MODELOS")
+        modelos = {}
+        if carpeta:
+            modelos = {
+                "text_detection_model_name": "PP-OCRv5_mobile_det", "text_detection_model_dir": f"{carpeta}/PP-OCRv5_mobile_det_infer",
+                "text_recognition_model_name": "latin_PP-OCRv5_mobile_rec", "text_recognition_model_dir": f"{carpeta}/latin_PP-OCRv5_mobile_rec_infer",
+            }
+        _MOTOR_CACHE["paddleocr"] = PaddleOCR(use_doc_orientation_classify=False, use_doc_unwarping=False,
+                                              use_textline_orientation=False, enable_mkldnn=False, **({} if modelos else {"lang": "es"}), **modelos)
     entrada = cv2.cvtColor(imagen, cv2.COLOR_GRAY2BGR) if imagen.ndim == 2 else imagen
     items = []
     for pagina in _MOTOR_CACHE["paddleocr"].predict(entrada):
@@ -125,7 +135,7 @@ def version_motor(motor: str) -> str:
     if motor == "paddleocr":
         import importlib.metadata as m
 
-        return f"PaddleOCR {m.version('paddleocr')} (PaddlePaddle {m.version('paddlepaddle')}, CPU, PP-OCRv5 latín)"
+        return f"PaddleOCR {m.version('paddleocr')} (PaddlePaddle {m.version('paddlepaddle')}, CPU, modelos móviles PP-OCRv5 latín)"
     import pytesseract
 
     return f"Tesseract {pytesseract.get_tesseract_version()} (pytesseract, '{TESSERACT_CONFIG}', idioma spa)"
