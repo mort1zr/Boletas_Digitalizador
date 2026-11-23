@@ -198,7 +198,7 @@ Las pruebas se ejecutan sobre una carpeta de datos temporal (nunca tocan `data/`
 
 ## Experimentos del informe final
 
-La carpeta `experimentos/` contiene una muestra de 11 boletas **reales anonimizadas**, sus valores de referencia, los scripts que comparan PaddleOCR, RapidOCR, EasyOCR y Tesseract con el pipeline real (EasyOCR ya no es dependencia: para reproducir sus rondas, `pip install easyocr`) y los resultados obtenidos. Las instrucciones para reproducirlos están en `experimentos/README.md`.
+La carpeta `experimentos/` contiene los valores de referencia de 38 boletas **reales anonimizadas** (las imágenes de 11 están en el repositorio y las de 27 se entregan aparte), sus valores de referencia, los scripts que comparan PaddleOCR, RapidOCR, EasyOCR y Tesseract con el pipeline real (EasyOCR ya no es dependencia: para reproducir sus rondas, `pip install easyocr`) y los resultados obtenidos. Las instrucciones para reproducirlos están en `experimentos/README.md`.
 
 ## Limitaciones conocidas
 

@@ -18,8 +18,9 @@ def wilson(aciertos: int, n: int, z: float = 1.96) -> tuple[float, float]:
 
 
 salida = {}
+TODOS = ("easyocr", "tesseract", "rapidocr", "paddleocr")
 RONDAS = [("ronda1", RES / "ronda1_sin_normalizacion", ("easyocr", "tesseract")), ("ronda2", RES, ("easyocr", "tesseract")),
-          ("final", RES / "final", ("easyocr", "tesseract", "rapidocr", "paddleocr"))]
+          ("final", RES / "final", TODOS), ("validacion", RES / "validacion_independiente", TODOS)]
 for ronda, carpeta, motores in RONDAS:
     for motor in motores:
         if not (carpeta / f"detalle_{motor}.csv").exists():
@@ -33,5 +34,14 @@ for ronda, carpeta, motores in RONDAS:
             "ic95_por_campo": {c: wilson(v, n) for c, v in por_campo.items()},
             "boletas_completas": int(sum(int(f["fecha_ok"]) + int(f["comercio_ok"]) + int(f["total_ok"]) == 3 for f in filas)), "n": n,
         }
+# Todas las boletas (ajuste + validación independiente)
+for motor in TODOS:
+    if not (RES / "validacion_independiente" / f"detalle_{motor}.csv").exists():
+        continue
+    filas = (list(csv.DictReader((RES / "final" / f"detalle_{motor}.csv").open(encoding="utf-8")))
+             + list(csv.DictReader((RES / "validacion_independiente" / f"detalle_{motor}.csv").open(encoding="utf-8"))))
+    n = len(filas)
+    campos = sum(int(f["fecha_ok"]) + int(f["comercio_ok"]) + int(f["total_ok"]) for f in filas)
+    salida[f"todas_{motor}"] = {"campos_correctos": campos, "campos_total": 3 * n, "ic95_global": wilson(campos, 3 * n), "n": n}
 (RES / "metricas_complementarias.json").write_text(json.dumps(salida, ensure_ascii=False, indent=2), encoding="utf-8")
 print(json.dumps(salida, ensure_ascii=False))

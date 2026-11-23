@@ -190,5 +190,137 @@
     },
     "boletas_completas": 8,
     "n": 11
+  },
+  "validacion_easyocr": {
+    "campos_correctos": 39,
+    "campos_total": 81,
+    "ic95_global": [
+      37.6,
+      58.9
+    ],
+    "ic95_por_campo": {
+      "fecha": [
+        27.6,
+        62.7
+      ],
+      "comercio": [
+        15.9,
+        48.5
+      ],
+      "total": [
+        51.5,
+        84.1
+      ]
+    },
+    "boletas_completas": 4,
+    "n": 27
+  },
+  "validacion_tesseract": {
+    "campos_correctos": 40,
+    "campos_total": 81,
+    "ic95_global": [
+      38.8,
+      60.0
+    ],
+    "ic95_por_campo": {
+      "fecha": [
+        40.7,
+        75.5
+      ],
+      "comercio": [
+        21.5,
+        55.8
+      ],
+      "total": [
+        34.0,
+        69.3
+      ]
+    },
+    "boletas_completas": 3,
+    "n": 27
+  },
+  "validacion_rapidocr": {
+    "campos_correctos": 57,
+    "campos_total": 81,
+    "ic95_global": [
+      59.7,
+      79.2
+    ],
+    "ic95_por_campo": {
+      "fecha": [
+        51.5,
+        84.1
+      ],
+      "comercio": [
+        40.7,
+        75.5
+      ],
+      "total": [
+        63.3,
+        91.8
+      ]
+    },
+    "boletas_completas": 9,
+    "n": 27
+  },
+  "validacion_paddleocr": {
+    "campos_correctos": 67,
+    "campos_total": 81,
+    "ic95_global": [
+      73.1,
+      89.4
+    ],
+    "ic95_por_campo": {
+      "fecha": [
+        71.9,
+        96.1
+      ],
+      "comercio": [
+        51.5,
+        84.1
+      ],
+      "total": [
+        71.9,
+        96.1
+      ]
+    },
+    "boletas_completas": 16,
+    "n": 27
+  },
+  "todas_easyocr": {
+    "campos_correctos": 55,
+    "campos_total": 114,
+    "ic95_global": [
+      39.3,
+      57.3
+    ],
+    "n": 38
+  },
+  "todas_tesseract": {
+    "campos_correctos": 56,
+    "campos_total": 114,
+    "ic95_global": [
+      40.1,
+      58.2
+    ],
+    "n": 38
+  },
+  "todas_rapidocr": {
+    "campos_correctos": 80,
+    "campos_total": 114,
+    "ic95_global": [
+      61.2,
+      77.8
+    ],
+    "n": 38
+  },
+  "todas_paddleocr": {
+    "campos_correctos": 97,
+    "campos_total": 114,
+    "ic95_global": [
+      77.4,
+      90.5
+    ],
+    "n": 38
   }
 }
