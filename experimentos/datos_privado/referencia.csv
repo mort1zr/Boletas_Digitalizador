@@ -1,0 +1,28 @@
+id,archivo,formato,regla,condicion,fecha,comercio,total,descripcion_captura
+R12,imagenes/R12_bembos.jpg,A,A,delivery_restaurante,2026-11-06,BEMBOS S.A.C.|BEMBOS,46.90,Boleta de restaurante de comida rápida (pedido por delivery); tarjeta de reparto en la parte superior
+R13,imagenes/R13_lucio_caffe.jpg,A,A,cafeteria_impresion_matricial,2026-11-12,MAMBRINO S.A.C.|LUCIO CAFFE,84.20,Boleta de cafetería de impresión tenue con líneas largas de dirección
+R14,imagenes/R14_chinawok.jpg,A,A,restaurante_ticket_largo,2026-11-08,ALERT DEL PERU S.A.C.|ALERT DEL PERU S.A.C|CHINAWOK,59.90,Boleta de restaurante con ítems de combo en varios niveles
+R15,imagenes/R15_amphora.jpg,A,A,tienda_papel_curvado,2026-09-03,AMPHORA,175.20,Boleta de tienda por departamentos; papel curvado y sombra
+R16,imagenes/R16_woallance.jpg,A,A,boleta_ropa,2026-11-16,CORPORACION WOALLANCE SAC|CORPORACION WOALLANCE S.A.C.|WOALLANCE,210.00,Boleta de tienda de ropa sobre fondo oscuro
+R17,imagenes/R17_tambo_2.jpg,A,A,tienda_conveniencia,2026-11-18,TIENDAS TAMBO S.A.C.|TAMBO +|TAMBO,5.00,Boleta de tienda de conveniencia con descuentos
+R18,imagenes/R18_plazavea_3.jpg,A,A,supermercado_fondo_metalico,2026-11-20,COMPANIA FOOD RETAIL S.A.C.|PLAZA VEA,39.58,Boleta de supermercado sobre superficie metálica; la fecha aparece solo al pie
+R19,imagenes/R19_plazavea_4.jpg,A,A,supermercado_sombra,2026-11-21,COMPANIA FOOD RETAIL S.A.C.|PLAZA VEA,36.00,Boleta de supermercado con marca de agua; la fecha aparece solo al pie
+R20,imagenes/R20_papero_1.jpg,A,A,restaurante_fondo_oscuro,2026-11-11,MENGAM S.A.C.|PAPERO,19.80,Boleta de restaurante sobre un fondo con mapa
+R21,imagenes/R21_casaideas_1.jpg,A,A,ticket_largo_doblado,2026-11-22,DH EMPRESAS PERU S.A.|CASAIDEAS,41.80,Boleta larga y doblada con sombra intensa
+R22,imagenes/R22_casaideas_2.jpg,A,A,ticket_largo_doblado,2026-11-22,DH EMPRESAS PERU S.A.|CASAIDEAS,88.70,Boleta larga y doblada con otro papel superpuesto
+R23,imagenes/R23_dollarcity_1.jpg,A,A,ticket_largo_tenue,2026-11-22,SOLANA COMERCIAL S.A.C.|DOLLARCITY,16.00,Boleta de tienda de variedades con impresión tenue y logotipo grande
+R24,imagenes/R24_kids.jpg,A,A,ticket_largo_rosado,2026-11-14,TALLER DE CONFECCIONES SAN LUIS S.A.|KIDS MADE HERE|KIDS,209.80,Boleta larga con papel rosado y texto pequeño; la fecha está desenfocada
+R25,imagenes/R25_inirsa_1.jpg,A,A,ticket_pequeno_fondo_claro,2026-11-20,INNOVACIONES INDUSTRIALES RIPER SOCIEDAD ANONIMA|INIRSA|INIRSA-BANCO NACION,10.50,Boleta pequeña de cafetín sobre mesa clara con dedos en la foto
+R26,imagenes/R26_inirsa_2.jpg,A,A,ticket_pequeno_fondo_claro,2026-11-18,INNOVACIONES INDUSTRIALES RIPER SOCIEDAD ANONIMA|INIRSA|INIRSA-BANCO NACION,9.50,"Boleta pequeña de cafetín, arrugada"
+R27,imagenes/R27_dollarcity_2.jpg,A,A,ticket_largo_tenue,2026-11-22,SOLANA COMERCIAL S.A.C.|DOLLARCITY,16.00,Boleta de tienda de variedades con impresión tenue
+R28,imagenes/R28_papero_2.jpg,A,A,restaurante_papel_arrugado,2026-11-11,MENGAM S.A.C.|PAPERO,9.90,Boleta de restaurante con papel arrugado y sombra
+R29,imagenes/R29_tambo_3.jpg,A,A,tienda_conveniencia_fondo_rojo,2026-11-21,TIENDAS TAMBO S.A.C.|TAMBO +|TAMBO,4.00,Boleta de tienda de conveniencia sobre madera rojiza
+R30,imagenes/R30_brasas.jpg,A,A,restaurante_fondo_oscuro,2026-11-15,N & AN BRASAS PERUANAS EIRL|BRASAS PERUANAS,79.00,Boleta de restaurante de pollería sobre fondo oscuro
+R31,imagenes/R31_oxxo.jpg,A,A,tienda_papel_arrugado,2026-11-21,CADENA DE COMERCIO PERU S.A.C. - OXXO|CADENA DE COMERCIO PERU S.A.C.|OXXO,4.50,"Boleta de tienda de conveniencia, arrugada, sobre madera oscura"
+R32,imagenes/R32_keyou.jpg,A,A,restaurante_fondo_madera,2026-11-21,KE YOU S.A.C.|KE YOU,50.00,Boleta de restaurante con la fecha en formato AAAA-MM-DD
+R33,imagenes/R33_tambo_4.jpg,A,A,tienda_conveniencia_fondo_oscuro,2026-11-21,TIENDAS TAMBO S.A.C.|TAMBO +|TAMBO,2.99,Boleta de tienda de conveniencia sobre fondo negro
+R34,imagenes/R34_bembos_2.jpg,A,A,whatsapp_baja_resolucion,2026-11-23,BEMBOS S.A.C.|BEMBOS,16.90,Boleta de restaurante recibida por mensajería (900 px de ancho)
+R35,imagenes/R35_tambo_5.jpg,A,A,ticket_largo_madera,2026-11-19,TIENDAS TAMBO S.A.C.|TAMBO +|TAMBO,10.10,Boleta larga de tienda de conveniencia sobre madera clara
+R36,imagenes/R36_elsabor.jpg,A,A,restaurante_fondo_madera,2026-11-23,EL SABOR DE PALE S.A.C.|EL SABOR DE PALE,36.00,Boleta de restaurante sobre madera oscura con lista de locales
+R37,imagenes/R37_ripley_2.jpg,A,A,whatsapp_ticket_largo,2026-09-10,TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.|RIPLEY,49.99,Boleta de tienda por departamentos recibida por mensajería (900 px de ancho)
+R38,imagenes/R38_starbucks_2.jpg,A,A,whatsapp_cafeteria,2026-11-06,LASINO S.A|STARBUCKS COFFEE,34.50,Boleta de cafetería recibida por mensajería (900 px de ancho)
