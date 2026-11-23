@@ -1,0 +1,748 @@
+{
+  "entorno": {
+    "fecha_ejecucion": "2026-11-23T21:15:19",
+    "python": "3.13.18",
+    "sistema": "Linux-6.18.44-fc-v726-x86_64-with-glibc2.39",
+    "procesador": "x86_64",
+    "opencv": "4.10.0",
+    "nucleos_cpu": 4
+  },
+  "resultados": [
+    {
+      "motor": "easyocr",
+      "version": "EasyOCR 1.7.2 (PyTorch 2.15.0+cu132, CPU)",
+      "n": 27,
+      "exactitud_fecha": 40.7,
+      "exactitud_comercio": 25.9,
+      "exactitud_total": 81.5,
+      "exactitud_global_campos": 49.4,
+      "exactitud_por_comprobante": 14.8,
+      "similitud_comercio_media": 0.509,
+      "comercio_aprox_090": 33.3,
+      "t_medio_s": 14.15,
+      "t_desv_s": 2.37,
+      "t_min_s": 6.99,
+      "t_max_s": 16.99,
+      "t_ocr_medio_s": 13.93,
+      "t_preproceso_medio_s": 0.218,
+      "arranque_s": 29.23,
+      "por_formato": {
+        "A": {
+          "n": 27,
+          "fecha": 40.7,
+          "comercio": 25.9,
+          "total": 81.5,
+          "comprobante": 14.8
+        }
+      },
+      "por_condicion": {
+        "boleta_ropa": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "cafeteria_impresion_matricial": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "delivery_restaurante": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "restaurante_fondo_madera": {
+          "n": 2,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 50.0,
+          "comprobante": 0.0
+        },
+        "restaurante_fondo_oscuro": {
+          "n": 2,
+          "fecha": 50.0,
+          "comercio": 0.0,
+          "total": 50.0,
+          "comprobante": 0.0
+        },
+        "restaurante_papel_arrugado": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "restaurante_ticket_largo": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "supermercado_fondo_metalico": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "supermercado_sombra": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "ticket_largo_doblado": {
+          "n": 2,
+          "fecha": 100.0,
+          "comercio": 50.0,
+          "total": 100.0,
+          "comprobante": 50.0
+        },
+        "ticket_largo_madera": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "ticket_largo_rosado": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "ticket_largo_tenue": {
+          "n": 2,
+          "fecha": 50.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "ticket_pequeno_fondo_claro": {
+          "n": 2,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "tienda_conveniencia": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "tienda_conveniencia_fondo_oscuro": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "tienda_conveniencia_fondo_rojo": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "tienda_papel_arrugado": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "tienda_papel_curvado": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "whatsapp_baja_resolucion": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "whatsapp_cafeteria": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "whatsapp_ticket_largo": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        }
+      }
+    },
+    {
+      "motor": "tesseract",
+      "version": "Tesseract 5.3.4 (pytesseract, '--oem 1 --psm 6', idioma spa)",
+      "n": 27,
+      "exactitud_fecha": 63.0,
+      "exactitud_comercio": 29.6,
+      "exactitud_total": 55.6,
+      "exactitud_global_campos": 49.4,
+      "exactitud_por_comprobante": 7.4,
+      "similitud_comercio_media": 0.566,
+      "comercio_aprox_090": 37.0,
+      "t_medio_s": 1.46,
+      "t_desv_s": 0.69,
+      "t_min_s": 0.42,
+      "t_max_s": 3.33,
+      "t_ocr_medio_s": 1.25,
+      "t_preproceso_medio_s": 0.21,
+      "arranque_s": 0.0,
+      "por_formato": {
+        "A": {
+          "n": 27,
+          "fecha": 63.0,
+          "comercio": 29.6,
+          "total": 55.6,
+          "comprobante": 7.4
+        }
+      },
+      "por_condicion": {
+        "boleta_ropa": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "cafeteria_impresion_matricial": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "delivery_restaurante": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "restaurante_fondo_madera": {
+          "n": 2,
+          "fecha": 50.0,
+          "comercio": 0.0,
+          "total": 50.0,
+          "comprobante": 0.0
+        },
+        "restaurante_fondo_oscuro": {
+          "n": 2,
+          "fecha": 50.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "restaurante_papel_arrugado": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "restaurante_ticket_largo": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 100.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "supermercado_fondo_metalico": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "supermercado_sombra": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "ticket_largo_doblado": {
+          "n": 2,
+          "fecha": 100.0,
+          "comercio": 50.0,
+          "total": 50.0,
+          "comprobante": 0.0
+        },
+        "ticket_largo_madera": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "ticket_largo_rosado": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "ticket_largo_tenue": {
+          "n": 2,
+          "fecha": 50.0,
+          "comercio": 0.0,
+          "total": 50.0,
+          "comprobante": 0.0
+        },
+        "ticket_pequeno_fondo_claro": {
+          "n": 2,
+          "fecha": 50.0,
+          "comercio": 0.0,
+          "total": 50.0,
+          "comprobante": 0.0
+        },
+        "tienda_conveniencia": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "tienda_conveniencia_fondo_oscuro": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "tienda_conveniencia_fondo_rojo": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "tienda_papel_arrugado": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "tienda_papel_curvado": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "whatsapp_baja_resolucion": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "whatsapp_cafeteria": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "whatsapp_ticket_largo": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        }
+      }
+    },
+    {
+      "motor": "rapidocr",
+      "version": "RapidOCR 1.2.3 (ONNX Runtime 1.32.0, CPU)",
+      "n": 27,
+      "exactitud_fecha": 70.4,
+      "exactitud_comercio": 66.7,
+      "exactitud_total": 77.8,
+      "exactitud_global_campos": 71.6,
+      "exactitud_por_comprobante": 40.7,
+      "similitud_comercio_media": 0.9,
+      "comercio_aprox_090": 77.8,
+      "t_medio_s": 1.48,
+      "t_desv_s": 0.46,
+      "t_min_s": 0.77,
+      "t_max_s": 2.79,
+      "t_ocr_medio_s": 1.25,
+      "t_preproceso_medio_s": 0.23,
+      "arranque_s": 0.26,
+      "por_formato": {
+        "A": {
+          "n": 27,
+          "fecha": 70.4,
+          "comercio": 66.7,
+          "total": 77.8,
+          "comprobante": 40.7
+        }
+      },
+      "por_condicion": {
+        "boleta_ropa": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "cafeteria_impresion_matricial": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "delivery_restaurante": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "restaurante_fondo_madera": {
+          "n": 2,
+          "fecha": 0.0,
+          "comercio": 50.0,
+          "total": 50.0,
+          "comprobante": 0.0
+        },
+        "restaurante_fondo_oscuro": {
+          "n": 2,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "restaurante_papel_arrugado": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "restaurante_ticket_largo": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "supermercado_fondo_metalico": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "supermercado_sombra": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "ticket_largo_doblado": {
+          "n": 2,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "ticket_largo_madera": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "ticket_largo_rosado": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "ticket_largo_tenue": {
+          "n": 2,
+          "fecha": 50.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 50.0
+        },
+        "ticket_pequeno_fondo_claro": {
+          "n": 2,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "tienda_conveniencia": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "tienda_conveniencia_fondo_oscuro": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "tienda_conveniencia_fondo_rojo": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "tienda_papel_arrugado": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "tienda_papel_curvado": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        },
+        "whatsapp_baja_resolucion": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "whatsapp_cafeteria": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "whatsapp_ticket_largo": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 0.0,
+          "comprobante": 0.0
+        }
+      }
+    },
+    {
+      "motor": "paddleocr",
+      "version": "PaddleOCR 3.7.0 (PaddlePaddle 3.3.1, CPU, modelos móviles PP-OCRv5 latín)",
+      "n": 27,
+      "exactitud_fecha": 85.2,
+      "exactitud_comercio": 74.1,
+      "exactitud_total": 92.6,
+      "exactitud_global_campos": 84.0,
+      "exactitud_por_comprobante": 59.3,
+      "similitud_comercio_media": 0.94,
+      "comercio_aprox_090": 85.2,
+      "t_medio_s": 12.27,
+      "t_desv_s": 3.38,
+      "t_min_s": 7.14,
+      "t_max_s": 23.26,
+      "t_ocr_medio_s": 12.06,
+      "t_preproceso_medio_s": 0.212,
+      "arranque_s": 2.14,
+      "por_formato": {
+        "A": {
+          "n": 27,
+          "fecha": 85.2,
+          "comercio": 74.1,
+          "total": 92.6,
+          "comprobante": 59.3
+        }
+      },
+      "por_condicion": {
+        "boleta_ropa": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "cafeteria_impresion_matricial": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "delivery_restaurante": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "restaurante_fondo_madera": {
+          "n": 2,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 50.0,
+          "comprobante": 50.0
+        },
+        "restaurante_fondo_oscuro": {
+          "n": 2,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 50.0,
+          "comprobante": 50.0
+        },
+        "restaurante_papel_arrugado": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "restaurante_ticket_largo": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "supermercado_fondo_metalico": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "supermercado_sombra": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "ticket_largo_doblado": {
+          "n": 2,
+          "fecha": 100.0,
+          "comercio": 50.0,
+          "total": 100.0,
+          "comprobante": 50.0
+        },
+        "ticket_largo_madera": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "ticket_largo_rosado": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "ticket_largo_tenue": {
+          "n": 2,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "ticket_pequeno_fondo_claro": {
+          "n": 2,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "tienda_conveniencia": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "tienda_conveniencia_fondo_oscuro": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "tienda_conveniencia_fondo_rojo": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "tienda_papel_arrugado": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "tienda_papel_curvado": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "whatsapp_baja_resolucion": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        },
+        "whatsapp_cafeteria": {
+          "n": 1,
+          "fecha": 100.0,
+          "comercio": 100.0,
+          "total": 100.0,
+          "comprobante": 100.0
+        },
+        "whatsapp_ticket_largo": {
+          "n": 1,
+          "fecha": 0.0,
+          "comercio": 0.0,
+          "total": 100.0,
+          "comprobante": 0.0
+        }
+      }
+    }
+  ]
+}

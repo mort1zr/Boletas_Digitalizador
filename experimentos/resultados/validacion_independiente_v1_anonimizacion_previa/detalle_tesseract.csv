@@ -1,0 +1,891 @@
+id,formato,condicion,fecha_ref,fecha_ocr,fecha_ok,comercio_ref,comercio_ocr,comercio_ok,total_ref,total_ocr,total_ok,comprobante_ok,similitud_comercio,rotacion_estimada,t_preproceso_s,t_ocr_s,t_extraccion_s,t_total_s,texto_ocr
+R12,A,delivery_restaurante,2026-11-06,2026-11-06,1,BEMBOS S.A.C.|BEMBOS,NO RECIBIA EL PEDIDO EN CASO El,0,46.90,46.90,1,0,0.136,0.0,0.204,1.389,0.0022,1.595,"NO RECIBIA EL PEDIDO EN CASO El
+BEMBOS A
+Bembos S.A.(
+20101087647
+Jiron Bernardo Alcedo N 662
+LIMA - LIMA - SANTIAGO DE SURCO
+Local: CENTRO CIVICO
+AV. INCA GARCILAZO DE LA VEGA 1337
+INT, 1013
+BOLETA DE VENTA ELECTRONICA B156-04931782
+FECHA DE EMISION:06/11/2026 HORA:20:17:31
+1 G Ttrio queso tocino 35.90 35.90
+3 BP Queso tocino
+mediana 3.00 9.00
+2 BP Papa mediana 1.00 2.00
+BP Papa regular
+2  BPAÁji bembos x3
+BP Mayonesa x3
+BP Bolsa kraft G
+OP. GRAVADA S/ 38.82
+q IGV S/ 6.99
+- S/ 1.09
+- APAGAR S/ 46.90
+“Son: CUARENTA Y SEIS CON 90/100 SOLES
+o PPP
+PEDIDOSYA S/ 46.90
+TDA/CC:1062/2143
+Maq+00NO USAR
+Caja:4 Ref.143904903-05
+Dadidos Ya - DriVOr esas
+Representación Impresa de la ICA
+: www.bembos.com.pe"
+R13,A,cafeteria_impresion_matricial,2026-11-12,,0,MAMBRINO S.A.C.|LUCIO CAFFE,LUCIO CAFFE,1,84.20,84.20,1,0,1.0,0.0,0.185,1.118,0.0018,1.305,"LUCIO CAFFE
+MANBRINO S.A.C. - R.U,C. 20101904874
+AV. FELIPE PARDO Y ALIAGA NRO. 652
+INT S1 - SAN ISIDRO - LIMA - LIMA
+AV. INCA GARCILASO DE LA VEGA 1337 INT
+1042, 1043, 1056, CERCADO DE LIMA
+BOLETA Ñ VENTA ELECTRONICA
+FECHA: 12/11/2026 HORA: 18:19:19
+0
+CAJA:3 - 23 CANAL: Salon
+PO
+NUMERO:
+Cant Descripcion Pv.Unit Total
+1 IcedTealWild 1050 19.30
+1 PorCarrotCak 16.90 16.90
+Ñ DPepperoni 2290 22.90
+1 MuffChoco 1190.11. 90
+1 BatiVainilla 18.00 18.00
+Descuento S/ 0.00
+Inporte Total S/ 94.20
+SON : OCHENTA Y CUATRO CON 20/100 SOLES
+Medio de Pago e
+Efectivo S/ 84.20
+Vuelto S/ 0.00
+autorizado nediante resolucion
+Wro,034-005-0005038/SUNAT.
+Representacion inpresa de opi JE"
+R14,A,restaurante_ticket_largo,2026-11-08,2026-11-15,0,ALERT DEL PERU S.A.C.|ALERT DEL PERU S.A.C|CHINAWOK,CHINAWOK,1,59.90,,0,0,1.0,0.0,0.213,1.446,0.0022,1.661,"e
+, MO
+a AO RE
+NS A
+CHINAWOK
+ALERT DEL PERU S.A.C
+20101869947
+lion Bernardo Alcedo 662
+NT] lima - Lince
+local Real Plaza ( untro Civico
+Av. Garellaso de la Y 401 Nro.133/
+la Mega Ed 1H
+BOLETA DI VENTA El EC IRÓNICA B039-01518/66
+o ECHA DE EMISTON 15/11/2026 HORA:14:29:50 a
+1S Bgte >uper fam cw 59 90 59 390 '
+3 BS Nuevo chaufa p l
+BS A enta >
+E +
+) Í e
+|) 3
+a! Es
+OP. GRAVADA S/ 49.34 ES
+S/ 8.8€ E
+IGV >) 3.88 >
+RE S/ 1.68 E
+IMPORTE A PAGA! S/ 59.90 E
+¿AU Al "" a e
+Son: CINCUENTA Y NUEVE CON 30/100 SOLES =
+4 ose VISA INALAMBRICO S/ 59.90 ES:
+Codigo tienda: 3116 Bo
+TDA/CC: 25/3110 S
+Maq*X9XL033861 A
+Caja:1 Ref. 1743510-00 =
+»
+Sr documento puede ser validado en 7
+Representacion Impresa de la BOLETA DE VENTA El a. ROPA
+5 www.chinawok.com.pe"
+R15,A,tienda_papel_curvado,2026-09-03,2026-09-03,1,AMPHORA,,0,175.20,175.20,1,0,0.0,1.96,0.234,1.354,0.002,1.59,"SS |
+PP e ES e. a . —
+0010
+20492281639 +
+CENTRO CÍVICO o
+AV. TNCA GARCILASO DE LA VEGA NRO. 1337 [NT LA
+R-14 (REAL PLAZA - PISO 2- CENTRO CIVII 0) ?
+01-7179804 Ú
+BOLETA DE VENTA ELECTRONICA A Y
+B011-00035403
+TENOR RAR COPIA RARA
+Fecha: 03/09/2026 Hora ¡12:23:33
+Credito Tda 0.00
+COD CANT. PRECIO DSCT PRECIO TOTAL
+UNIT. 1 CON
+UNTT. DSCTO
+DESCRIPCION
+1024409 1 219.00 43.60 175,20 175.20
+FABULA CARTERA TIPO DOS ASAS PORTA NOTEBO
+OP GRAVADAS s/ 148.47
+OP.GRATUITAS 0.00 E
+OP.EXONERADAS S/ 0.00
+OP INAFECTAS s/ 0.00
+TOTAL. DCTO 5/ 0.00
+1GV 18%o 26.73
+TOTAL APAGAR; — S/ 129.40
+PAGO VISA 175.20
+Son : CIENTO SETENTA Y CINCO Y 20/100 SOLES"
+R16,A,boleta_ropa,2026-11-16,2026-11-16,1,CORPORACION WOALLANCE SAC|CORPORACION WOALLANCE S.A.C.|WOALLANCE,Corporacion Woallance SAC,1,210.00,,0,0,1.0,0.0,0.196,1.245,0.0016,1.442,"Corporacion Woallance SAC
+RUC: 20544014189
+JR. ¡IGNACIO COSSIO NRO. 1866 LIMA -
+LIMA - LA VICTORIA
+Telef. :210.00
+PROLONGACIÓN GAMARRA NRO. 1140
+LIMA-LIMA-LA VICTORIA
+BOLETA DE VENTA ELECTRÓNICA
+N* B005-00042939
+Fecha: 16/11/2026 11:31:26AM
+Dirección: av. LA VICTORIA - LIMA - LIMA
+DESCRIPCIONCANT. P.UNIT V.VENTA
+CAMISA MC WOALLANCE ALEXANDER
+H25-26 VERCL
+ME 1000 5932 5932
+CAMISA MC WOALLANCE GALAPAGOS
+H26-26 HUESO
+SHORT WOALLANCE MONACO H285-26
+HUESO
+Total Gravado S 177.97
+Total Descuento $S 0.00
+Total |GV(% 18 S 32.03
+Importe Tota S 210.00
+Cant. Ant. . 3
+FORMA DE PAGO
+TIPO MON VALOR T.CAMIMPORTE
+Visa S/ 210.00 3.4040  210.0C
+Vuelto S/ 0.0C
+Representación Impresa de la Boleta de
+Venta Electrónica
+Autorizado mediante RI N* 034-008-
+0006805/SUNAT"
+R17,A,tienda_conveniencia,2026-11-18,2026-11-18,1,TIENDAS TAMBO S.A.C.|TAMBO +|TAMBO,TAMBO +,1,5.00,5.00,1,1,1.0,0.0,0.21,1.478,0.0019,1.69,"TAMBO +
+E O IN, 1201 URB, RIVERA
+AU. JAVIER PRADO ESTE N 0 í BD. dE
+¡Y 448 10 1028 - 450 Lc 1029 - URB. SAN CESAR 2DA
+Au. LA FONTANA 44 a CA CAOCINA
+RUC: 20563529378
+BOLETA DE VENTA ELECTRÓNICA
+B836-00259236
+Tienda 836 Caja registradora; 1
+Fecha: 18/11/26 Hora: 18:00
+Artículo Cantidad Precio Importe
+REHIDRATANTE PONERADE MORA AZUL X 600 NL pes z
+1013779. 1 UniS 2.99 2.00
+REHIDRATANTE POVERAD -0.99 Hs
+REHIDRATANTE POYVERADE MORA AZUL X 600 NL
+1013779 1 UniS 2.99 2.00 ds
+REHIDRATANTE POVERAD -0,99 E
+BIZCOCHO BARADO CHOCHAN DOBLE NANJAR X 55 GR Hee
+1007039 1 UniS 1.50 1.00 Eo
+PDH BIZCOCHO CHOCHAN -0.50 Ae
+OP _GRAVADAS 4.24 Da
+OP INAFECTAS 0.00 A
+TOTAL. DCTO 2.48 AR
+a Estándar 10% 0.76 AUS
+TOTAL A PAGAR 5.00 NE
+ÓN Redondeo 0.00 AS
+ectivo A. 5.00 yy
+Son; CINCO Y 00/100 SOL
+A 0.00
+Entérate de la politica de canbios y devoluciones en
+https: //uwuw.tanbo.pe/canbios-devoluciones
+GRACIAS POR COMPRAR EN TANBO+
+iCadaVezNásCerca
+0111343813960 0ECEETA 0
+BOLETA_DE VENTA ELECTRÓNICA
+, ON
+.. Re p sa
+. a
+3 h A
+q 3 METE"
+R18,A,supermercado_fondo_metalico,2026-11-20,2026-11-20,1,COMPANIA FOOD RETAIL S.A.C.|PLAZA VEA,"COMPANIA FOOD RETAIL S.A.C,",0,39.58,39.58,1,0,0.963,0.0,0.193,1.239,0.0017,1.433,"COMPANIA FOOD RETAIL S.A.C,
+RUC 20608300393
+CAL. CESAR MORELLI 181 P-3
+SAN BORJA, LIMA
+BOLETA DE VENTA ELECTRONICA
+BAG2 E 117
+0000000663496 POLLO PESP S
+1.355 KG X 14,90 20,18
+1752346006187 PACK JAM QUE 12.90
+0000077555922 S HUACHO 6.50
+SUBTOTAL Se 39,58
+3 UNIDADES)
+SS JP. EXONERADA 0.00
+O OP. INAFECTA 0.00
+PEA OP. GRAVADA : 33.54
+LSV S/ 2-09
+SB | IMPORTE TOTAL ci 39.58
+E TOTAL APAGAR 3 99,38 ES
+SS A INTA Y NUEVE Y 58/100 SOLES Se ES
+ES HO $
+SO E
+A VUELTO 0.00 Eli”
+Autorizado mediante resolucion Nro,
+155-2017/SUNAT Representacion impresa
+dy . E i ectronica consulte su
+0248 0134/018/043 20.11.26 14:24 AC-00"
+R19,A,supermercado_sombra,2026-11-21,2026-11-21,1,COMPANIA FOOD RETAIL S.A.C.|PLAZA VEA,COMPANIA FOOD RETAIL S.A.(,0,36.00,,0,0,0.943,0.0,0.186,1.183,0.0015,1.371,"o Y ETA MR z P !
+7 ""LA / PIS ; :
+' ) AS A
+COMPANIA FOOD RETAIL S.A.(
+RUC 20608300393
+CAL. CESAR MORELLI 181 P-3
+SAN BORJA, LIMA
+BOLETA DE VENTA ELECTRONICA
+BAd2=0 Ñ ¿ABD
+8067 10444 SPK | 21.5
+e A ¡1.00 3. UU
+3410449914241 A TKOPAPATKG Y 3)
+34470000024 LA CALERAXSO 106.90
+UBTOTA! S 36.00
+a] UNIDAD € Dd
+OP. EXONERADA 0.00
+OP. INAFECTA 0.00
+P. GRAVADA 30.51
+Ele Y O / 5 49
+IMPORTE TOTAL 07 36.00
+TOTAL A PAGAR 5 26.00
+IRETNTA Y SETS SOLES
+VUELTO 0.00
+Autorizad olucion Nro.
+AB OT7/S Mación impresa
+de la boleta elec on ¿ eS a SU
+ú 43517 0134/005/021 21.11.26 12:49 AC-00"
+R20,A,restaurante_fondo_oscuro,2026-11-11,,0,MENGAM S.A.C.|PAPERO,UN o i,0,19.80,19.80,1,0,0.211,0.0,0.143,0.818,0.0011,0.962,"UN o i
+/ PAPERO
+wentda Prolongación Pase | Rup]
+ho ) Cu uplica sn 6
+rrillo: Chorrillo Lima CC Plaza Lima Sur
+MENGAM S.A.(
+ar 1d ma má Ml
+po
+BOLETA DE VENTA ELECTRONICA Dora
+B029-0051982
+Descripcion CANT P.UNI TOTAL a A
+SALCHIPAPA 02.00 9.90 19.80 0 ,
+SUB TOTAL S/ 16.49 sa
+TEGO. 54 TE K
+RC S/ 1.58 ]
+A Mo
+TOTAL S/ 19.80
+e DN VE CON 80/100 Soles"
+R21,A,ticket_largo_doblado,2026-11-22,2026-11-22,1,DH EMPRESAS PERU S.A.|CASAIDEAS,DH EMPRESAS PERU S.A.,1,41.80,,0,0,1.0,0.0,0.139,1.088,0.0018,1.228,"Casaideas
+DH EMPRESAS PERU S.A.
+RUC 20510069251
+Av. Manuel Olguín 211,04.504 -Lima - LINA
+Santiago de Surco
+BOLETA DE VENTA ELECTRONIC a z
+Tienda MS A epublica Amt. | ,
+LIMA LIMA ta
+j Fecha de Enision; 22/11/2026 Mora: 12:32
+Tienda y) s
+Caja HN] >
+j Inpresora A i j
+Trx,Nro. , E
+Moneda : Sol ; ;
+Ñ E ct a lc Es
+DESCRIPCION >
+CoDIa0 CANT x  P.UNIT SUBTOTAL pe
+DINOSAURIO APRETABLE, 0000, 0001 = os
+3231220000014 1.00 x 20,90 20.90 O
+DINOSAURIO APRETABLE, 0000, 0002 z O
+3231220000021 1.00. x 20.90 20.90 Ta
+Cant. Productos: 2.00 UND ES AS
+SUBTOTAL s/ 41.80 e
+mE ÓN
+OP. GRAVADA S/ 35.42 E LS :
+0P..INAFECTA s/ 0.00 i SS
+OP.EXONERADA s/ 0.00 E O
+Vo 168 s/ 6.38 o
+y dl o
+EN l
+5. ls |
+> 2 8 Al |
+A
+di 4 Sadistid dei:"
+R22,A,ticket_largo_doblado,2026-11-22,2026-11-22,1,DH EMPRESAS PERU S.A.|CASAIDEAS,"DH EMPRESAS PERU $ . lema,",0,88.70,88.70,1,0,0.809,-1.06,0.148,1.4,0.0029,1.551,"Ñ
+y
+Casaideas
+DH EMPRESAS PERU $ . lema,
+' RUC 20510069251
+y dv. Manuel Olguín 211,0F.504 Lima - LINA
+Santiago de Surco
+BOLETA DE VENTA ELECTRONICA
+1, eso lO
+Tienda: Av Paseo la republica ínt. L1203 - CHORRILLOS
+LINA +A .
+Fecha de Enteton: 22/11/2026 Hora: 12:22
+Tienda y
+Caja j
+INPreSura a
+Tr. Nro : 921046 ]
+Moneda : Sal ES
+DESCRIPCION E
+COD160 CANT xP. UNIT SUBTOTAL A
+|
+o ia 2]
+HUEVO DINOS XL 24 PCS, 0000, 0001 |
+229695000014 1.00. x 07.20 87.20 : 209
+BOLSA PAPEL L CORPORATIVA, 0000, 00 PO
+3222576000018 1.00 x 1.50 1.50 NE
+todoo STO la e O
+SUBTOTAL s/ 88.70 O
+E — y O
+0P.GRAVADA sí : OS
+OP. INAFECTA o O
+0? EXONERADA 38 0.00 A
+1.6.0. 108 s/ 115700 OS Sel
+TIPORTE TOTAL si eN o S
+Son; ochenta y ocho con 70/100 soles. O
+AE ES ¿S
+VISA s/ 86.70 O
+Su Conpra acunula: 4 Sol Ideas es A
+Total Acumulado ; 17 Sol Ideas »
+4
+E po 3 0, 3 / A | $
+ES ed 3 e: )
+dl EN
+E A
+í — Gantio o devolucion de producto an buen
+á “Ad llar ves de Not
+00 dias calendi 1 la fecha d
+ES 0 E ul APYEÑAi e
+s, A"
+R23,A,ticket_largo_tenue,2026-11-22,2026-11-22,1,SOLANA COMERCIAL S.A.C.|DOLLARCITY,PLAZA LIMA SUF,0,16.00,16.00,1,0,0.378,0.0,0.152,1.274,0.0019,1.427,"PLAZA LIMA SUF
+SOLANA COMERCIAL A (
+AV. ANTO TORIBIO N.143 INTERIOR 301
+URE L ROSARIO AN ISIDRO - LIMA
+RUC 20606109343
+á PLAZA LIMA SUR
+ENT OMERCTAL PLAZA LIMA SUR LOCAL
+E 2001 AVENIDA PASEO DE LA REPÚBLICA 435
+CHORRILLOS LIMA
+ETA DE VENTA ELECTRONICA
+OS z UR FINAL
+MN  'AEASOL PARA VEHICULO
+MN 59/S69310146 16.00 B
+10 16,00 ,
+P TOTAL. S/ 16.00
+j . _DIÉECISEIS CON 00/100 SOLES
+E 2. s/ 16.00
+PREU S y
+(B) 01 VENTAS AL 18% IGV S/2.44
+(Z) 00 VENTAS AL 0% S/0.00 : k E
+e |
+] Representación Impresa de la E
+Boleta de venta electrónica: : - E
+] https: //sol ana. ecomprobantes .pe/SOLANA E
+j En caso de defecto de fábrica, los >
+1 cambios y/o devoluciones deberán : : nn
+Í presentarse dentro de las 48 horas desde ¡ SS ==
+la compra, con boleta o factura en mano, S A
+No 89! ica ia DOS niacien LD
+o artículos de uso pe : Po
+A iS
+2026-11-22 4029 No 2
+es . Au
+Ñ y
+ad. 53
+Ñ m ys
+j E desd di dd ra a
+A"
+R24,A,ticket_largo_rosado,2026-11-14,,0,TALLER DE CONFECCIONES SAN LUIS S.A.|KIDS MADE HERE|KIDS,IDE 4,0,209.80,209.80,1,0,0.444,-1.84,0.073,0.754,0.0024,0.829,"a
+IDE 4
+plo or p
+¡ade here.
+TDA. JOCKEY PLAZA
+BOLETA DE VENTA ELECTRONICA
+B)13-00206194
+MH MADE HERE
+—— NoReg
+SKU CANT. PRECIO DSCTO PRECIO TOTAL
+-SCRIPCION UNIT. UNIT. € 1o
+165.50 70.00 1:39:90
+ACA COLOR JEAN-TRUCKER
+4545 1.00 169.90 80,00 69.90
+NTALON-LOOSE BOLSILLO TAPAS
+94454 1.00 1.00 1,00 0,00
+/D-SOLSA GRANDE DE PAPEL KIDS MACE HERE
+SUB TOTAL s/ 177.80
+TOTAL DESCUENTOS  S/ 1.00
+OP. GRAVADAS s/ 177.80
+OP. INAFECTAS s/ /0.00;
+OP.EXONERADAS s/ 0.00
+OP.GRATUITAS s/ 0.00
+IGV 18% S/ 32.00
+ICBPER s/ 0.00
+IMPORTE TOTAL s/ 209,80
+SON: DOSCIENTOS NUE'E Y 80/100 SOLES
+MEDIO DE PAGO
+PAGO VISA s/ 209.80
+ALLER DE CONFECCIONES SAN LUIS S.A
+LANE 1
+TODO CAMBIO O DEVOLUCIÓN SE HARÁ CON TICKET
+ANTES DE LOS 30 DÍAS Y CON NOTA DI: CRÉDITO. NO SE
+HARÁN DEVOLUCIONES DE DINERO, APLICA SOLO PARA
+PRENDAS DE LÍNEA Y OFERTAS, NO APLICA PARA PRENDAS
+COMPRADAS EN EL OUT.ET
+Autorizado MM
+v
+Representación Irpresa de la BOLITA DE VENTA
+ELECTRONICA.
+Este documento puede ser validado en:
+http://www.docek .pe/inter zambio
+IX —— _—_——————"
+R25,A,ticket_pequeno_fondo_claro,2026-11-20,2026-11-20,1,INNOVACIONES INDUSTRIALES RIPER SOCIEDAD ANONIMA|INIRSA|INIRSA-BANCO NACION,,0,10.50,10.50,1,0,0.0,5.0,0.091,0.627,0.0017,0.719,"bartácidas s CINIRSI ) 4 ! l
+RUC; 2051518411
+BOLETA DE VENTA ELECTRONICA
+B010-0000008042 |
+|
+Orden ; 0V-047031 a
+Fecha de emision : 20-11-2026
+Cant. Descripcion
+| P.Unit Desc Total
+Í 1 MENU MEDIO
+110.50 0.00 10.50
+| Subtotal: S/ 8.90
+4 IGV 18: 1.60
+Total: S/ 10.50
+| SON DIEZ CON 50/100 SOLES
+a
+1 (s)
+ov-047031 y
+Representacion impresa de la boleta de venta ele
+ctronica. Esta puede ser consultada en
+www. idbi,pe ]
+| Autorizado mediante 1 €
+| r
+| eN
+| Piti
+| Ar
+| SES
+! Ser,
+¡ JNE
+e
+a
+RP, . , 05
+he al IN
+as por comprar en INIRSA-Banco Nacii |
+: E A 00)
+Powered by idbi.pe ¿8 “sl
+d EE ed
+AR
+pá Y"
+R26,A,ticket_pequeno_fondo_claro,2026-11-18,,0,INNOVACIONES INDUSTRIALES RIPER SOCIEDAD ANONIMA|INIRSA|INIRSA-BANCO NACION,len : OV-04461,0,9.50,,0,0,0.182,-0.93,0.079,0.4,0.0007,0.48,"len : OV-04461
+MN
+Cua VENTA> 1 ¿026 10:08:01
+MAS DE PAGO: NTUD 5
+0Y-044601
+esenté presa de la boleta ul tae
+tronica, Esta puede ser consultada
+wn, 10b1 pe
+1zádo mediante resolucior 1 Mi
+Gracias por comprar en INIRSA-Banco Nacion
+dll Powered by 1dbj pe"
+R27,A,ticket_largo_tenue,2026-11-22,,0,SOLANA COMERCIAL S.A.C.|DOLLARCITY,,0,16.00,,0,0,0.0,0.0,0.127,0.777,0.0013,0.905,"na :
+A” a |
+2 po arch -
+¡ FINAL
+y JOB
+¡TAL 6.00
+ETS CON 00/100 SOLES
+A 16 00
+RECI VISUALIZADO:
+B 1 VENTAS AL 18% 1GV S/2.44
+JO VENTAS AL 0% S/0.00
+2 MEl S EXENTAS Q/
+Representación impresa A a
+enta electrónica:
+1 ecomprobantes,pe/SOLANA
+ecto de fábrica, los
+levoluciones deberán
+é o de las 48 horas desde E
+eta o factura en mano,
+Jara ropa interior
+de Uso personal
+GRACIAS POR SU VISITA z
+0026-11-22 12:48:02
+104016 01 69881 9302
+¿ o"
+R28,A,restaurante_papel_arrugado,2026-11-11,,0,MENGAM S.A.C.|PAPERO,PAPERO,1,9.90,9.90,1,0,1.0,0.0,0.134,0.758,0.001,0.893,"PAPERO
+, Avenida Prolongación Paseo de la RúBllica sn Ú
+OPI horrillos ima CC Plaza Lima Sul
+MENGAM S.A.
+UC NBOIRIRAN
+La MO! ina ma má
+BOLETA DE VENTA ELECTRONICA
+B029--0051981
+Fecha AZ e 01:20:32 p.ám.
+Descripcion CANT P.UNI TOTAL
+SALCHIPAPA 01,009.90. 9:90
+SUB TOTAL. .S/ O EN
+bio. 9/ .87
+RES/ 19
+TOTAL S/ 9.90
+a Ñ CON y 5o0les"
+R29,A,tienda_conveniencia_fondo_rojo,2026-11-21,2026-11-21,1,TIENDAS TAMBO S.A.C.|TAMBO +|TAMBO,Pedo e y,0,4.00,,0,0,0.286,0.0,0.522,2.322,0.0027,2.846,"Pedo e y
+A PA 0
+Ps TAMBO Ao
+O A 00 ESTE NRO, “BO IO INT. 1201-URB,. RIVERA ATi
+O Y. JAVIER PRADO ES :1201-URB. Ub
+E AU. AGUSTIN DE LA ROSA TORO NRO. 1013 URB. VILLA JARDIN SHA
+AOS Ry LINA-LIMA-SAN LUIS E
+SS RUC: 20563529378 E
+PS SS SS BOLETA DE VENTA ELECTRÓNICA ¿e
+O so E el
+SS Tienda 114 Caja registradora: 2 e $1
+OS SAS Fecha; 21/11/26 Hora: 21:16 ñ en .
+RES PEN
+SI Art ¡ ¡ h
+SS Artículo Cantidad 2 Precio Importe a
+SS [ESOS REHIDRATANTE SPORADE TROPICAL TAPA PLANA X 500 ML ds
+SS 1000683, 1 UniS 3.29 2.00 a
+SIS SPORADE SOOML/VOLT 3 -1.29
+OS REMTORATANTE SPORADE TROPICAL TAPA PLANA X 500 ML ; de
+SSI 1000683 1 UniS 3.29 2.00 ALE
+O SPORADE 5OONL/VOLT 3 -1.29 pea
+ON OP GRAVADAS 3.39 ee
+SN NN OP _INAFECTAS 0.00 ad
+SOS EN TOTAL. DCTO 2.58 A
+ON Estándar <> 10 ARDE
+E SR O TOTAL A PAR 4.00
+ES a Redondeo_ 0.00
+oa fr MR
+O SÓ
+NA
+; PE E 0) o
+e EA
+A A A IU IO (e P He y E
+SEAS TA PAE ER Entérate de la política de canbios y devoluciones en
+== 3 https: //uuww.tanbo.pe/cambios-devoluciones
+A. GRACIAS POR COMPRAR EN TANBO+
+E E IS tCadaVezNásCerca
+ET AS IRIS SEO ELTTAGAÍA
+LEE TT IA AAA E
+SS, Y TITS FIT ATO1TFACIVO Lo
+A O Rp bs
+EST Clasifi TADO
+IES Ze O 7 J Ms ; :
+O IÓ — (EVENDA: ESTA ES UNA REPRESENTACIÓN IMPRESA :
+A ETA ELECTRONICA DE LA BOLETA DE
+SE j j 034-005-0004323/SUNAT
+A 270%, COCOS UT Y8/20903929378"
+R30,A,restaurante_fondo_oscuro,2026-11-15,2026-11-15,1,N & AN BRASAS PERUANAS EIRL|BRASAS PERUANAS,N8AN BRASAS PERUANAS EIRL 4,0,79.00,79.00,1,0,0.889,1.9,0.295,1.66,0.002,1.957,"BRASAS PERUANAS / ,
+N8AN BRASAS PERUANAS EIRL 4
+RUC 20565692276 £
+AV. ARIOSTO MATELLINI E mos
+BOLETA DE VENT. CTRONICA E es
+8001-00241717 i es
+a e
+En Mesa y pr
+Mesa: 4B Clientes: 2 i >
+2 Churrasco C/ Mol 66.00 i a
+4 Coca Cola 1Lt 13.00 3 on
+Numero de articulos: 3 1
+Subtotal: S/71.49 A ñ
+OP. GRAVADA: S/71.49 33
+OP. INAFECTA S/0.00 E?
+GV: S/7.61 A a
+Total: S/79.00 A
+TOTAL A PAGAR: s/79.00 A
+Son: SETENTA Y NUEVE Y 00/100 SOLES S
+Tarjeta: S/79.00
+Condición de Pago: CONTADO
+Openpay 79.00
+Fecha de emisión: 15/11/2026 08:56 p. m.
+Cancelado: 15/11/2026 09:54 p. m.
+Blalleno por resolucion Nro, 0340050010017/SUNAT
+ara descargar comprobante: ww.camaleonperu.com
+opclon Factura Electronica. Representacion Impresa de
+la boleta de venta electronica. Representacion Impresa
+de la boleta de venta electronica
+Camaleon Bulld no. 477"
+R31,A,tienda_papel_arrugado,2026-11-21,,0,CADENA DE COMERCIO PERU S.A.C. - OXXO|CADENA DE COMERCIO PERU S.A.C.|OXXO,ES > m0 SANTIAGO DE Surco E,0,4.50,3.00,0,0,0.386,0.0,0.434,1.91,0.0025,2.346,"A 7
+A BO DE COMERCIO PERO 5.q.p. Ox z
+AS JR. El PoLo d01' 20602743960 0
+ES > m0 SANTIAGO DE Surco E
+A ao. SAN OL A o. E
+E SA BORDA 100"" E Es
+A e o
+A a SS |
+O BOLETA DE VENTA ELECT -
+Ep eE BO77-00672517 ON a
+A CLAVE CANT. PUN]
+A DESCRIPCION A 1 S
+E 7750182002363 1,00 270. 04% 2
+A — FANTA KOLA ING 5004 e
+A 7/50182220378 1,00 2,70 0,45 2,25
+o FANTA NARANJA 500NI ! 7
+A E OP GRAUADAS 01 ME
+A OP. EXONERADAS 0-0
+OP INAFECTAS 9-00, EE z
+A TGU 19% yd | E
+ns Dn , RA S/ á E
+a TOTAL A PAGAR E. 3% pa A
+E a SON: CUATRO CON 50/10 SOLES ES |
+A EDO DE PAGO: es
+AA PS RE a? EA ALE e
+A [Anel CREDITO 5 4550 !
+a VUELTO s/ 0,00
+E
+A
+A eentación en https: //0XX0.PB/Tace TI
+A ARE Autor. Par Ras. A z e A |
+En 2nciona]<7 jente Peru
+a GOO co tencionalolienta.Pe a
+a — DALQUIER CAÑBTO dE CUELON SE HASTA ET AS
+a [E LA CONPRA Qs | A"
+R32,A,restaurante_fondo_madera,2026-11-21,2026-11-21,1,KE YOU S.A.C.|KE YOU,,0,50.00,50.00,1,0,0.0,0.0,0.507,2.816,0.0025,3.325,"A o AN real ad, PS O O AS
+Rd A A ads A a da y :
+A A ca ia
+da a O CN MI crol Li A 07: a
+A HoLa : x
+ns a pao
+a > só,
+AS ENS ;
+A KE YOU S.A.C. A SS
+NA AV. SAN LUIS NRO. 1653 NN iS
+o A LUI a BE z >
+NE LIMA LIMA SAN BORJA Fea :
+A , RUC:20392622072 AS
+NS echa de emision: 2026-11-21 20:11:51 A
+A E A E
+A Pe DEA
+A B003-00193988 A
+RA E a conca A A E pS
+A cmemss EEN
+E E AS CANT DESCRIPCION P.UNITARIO IMPORTE A TR O
+AS RS TS, ARTIE TETTTTTTCUETITEam EA > .
+A HA NR E
+AN OS 1 COMBINADO DE POLLO 195 € S/ 25.00 A Ae E
+E E E
+A 25.00 E di pS
+A A AS . o RES
+A o 1 MENU 39 € S/25.00 25.00 [rin ti 0 o AO
+AS SE A E
+A TOTAL CONSUMO S/ 50.00 A E E
+A A AS ;
+TR A
+A O A EFECTIVO S/ 50.00 E
+A a EE
+A AS A A Eb ba SA
+a A S 45.25 RAI
+En A OP .GRAVADA S/ o , e
+A 1.G.Y. S/ 4.1 E A
+A TOTAL VENTA S/ 50.00 A
+da AA z o PE A ETB A
+E a ES
+as ETICA ERAN
+Ai STE Rd
+Ai A ión E
+PO RA E O MS TAR
+AS AR AR Es
+a A 0% $
+A a = A
+A e iS FE pe
+AIN DT E E Ro
+E IRA :
+A O 7 DS s
+DI E SA ,
+1 st E ECTRONICA
+si z Represen : ,
+: E ; E s ea
+ln E Lina Y SI «O 3
+ess . 0 ea 3 :"
+R33,A,tienda_conveniencia_fondo_oscuro,2026-11-21,2026-11-21,1,TIENDAS TAMBO S.A.C.|TAMBO +|TAMBO,TAHBO +,0,2.99,,0,0,0.857,0.0,0.354,1.847,0.0022,2.203,"TAHBO +
+TIENDAS TAHBO S.A.C.
+AU. JAVIER PRADO ESTE NRO, 6210 INT. 1201-URB. RIVERA
+AU. SAN BORJA NORTE NRO. 996 (PRIMER PISO) LIMA-LIMA=SAN BORJA
+A A RUDA 20509529340
+BOLETA DE VENTA ELECTRÓNICA — E
+AA B033-02810053
+tenda Caja registradora: 1
+Fecha: 21/11/26 Hora: 20:43
+Artículo Cantidad cid Precio Inporte
+AGUA SAN LUIS SIN GAS TAPA PLANA XT LT a
+1008136 1 UniS 2.99 2.99
+OP GRAVADAS 2.53
+0P INAFECTAS 0.00
+TOTAL. DCTO 0.00
+OASIS ES tanda ra rAlO DEAD
+0 a ——TOTAL_A PAGAR 20053
+ES ——=>
+Na Son: Y 39 E A O
+a Cambio A 0” PA
+e Entérate de la política de cambios y devoluciones en A DA
+8 https: //uuu.tenbo.pe/cambios-devoluciones a
+a GRACIAS POR COMPRAR EN TANBO+ os.
+L Hcadalezkóscers a
+e ES EOS dE a
+7 EA
+A : DAVE Z 1 0 DO SA ION
+Ea ORO ESA ASESR 401Y64u es SJ o
+e BOLE ÚNICA a O
+O
+A ra ISO
+A
+Clasifi encTato ÓN
+E E A
+a r o OA AAN
+LEVENDA: ESTA ES UNA REPRESENTACIÓN IMPRESA DE LA BOLETA DE AS o
+VENTA ELECTRÓNICA 034-005-0004323/SUNAT a
+529378 a Ad"
+R34,A,whatsapp_baja_resolucion,2026-11-23,2026-11-23,1,BEMBOS S.A.C.|BEMBOS,BEMBOS,1,16.90,,0,0,1.0,-1.76,0.093,0.65,0.0021,0.745,"BEMBOS
+Bembos S.A.C,
+20101087647
+Jiron Bernardo Alcedo N 662
+LIMA - LIMA - SANTIAGO DE SURCO
+Local; Caminos del Inca
+Av. Caminos del Inca 215
+PROOLETA DE VENTA ELECTRONICA 8031 05632735
+FECHA DE EMISION: 23/11/2026 HORA: 12:13:08
+-HA DE EMISION: 23/11/2026 HORA
+1 SL Burger menu sin
+huevo 14.90 14.90
+BS Burger menu sl
+1 SL Gaseosa JR
+menus 2.00 2.00
+BS Inca kola junior
+BS Con hielo
+——_ angle
+OP. GRAVADA PE
+A
+Sl S/ 2.52
+INPORTE A PAGAR E
+E EY
+291; DIECISEIS CON 90/100 SOLES
+VISA INALA|
+IDA/CC:
+Maq*X9XL11980
+Caja:2 Ref.63358]|
+¡TU OPINIÓN NOS IMPORTA!
+Escanea el QR o ingresa a
+www.dileabembos.com.pe,
+realiza la encuesta y obtendrás una
+recompensa al finalizarla.
+». Vigencia de la encuesta: 26/11/2026
+£ “Q"
+R35,A,ticket_largo_madera,2026-11-19,2026-11-19,1,TIENDAS TAMBO S.A.C.|TAMBO +|TAMBO,TIENDAS TAMBY S.H.L. A,0,10.10,1.18,0,0,0.81,0.0,0.287,1.504,0.0019,1.793,": TANOD 5.0.C
+TIENDAS TAMBY S.H.L. A
+AU. JAVIER PRADO ESTE NRO. 6210 INT. 1201-URB. RIVE ;
+. A ; LOS PROCERES NRO 263 URB LOS PROCERES LIMA-LIMA-SAN ES ES
+A oo: z :
+Aoi SURCO
+EA RUC: 20563529378 Mia
+A === BOLETA DE VENTA ELECTRÓNICA
+8884-00032563
+venda 184 Caja registradora: 2
+) Fecha: 19/11/26 Hora: 15:46
+, ] Ciuate
+j ombre: Clientes Varios
+Número de Documento: 00000001
+] Artículo. Cantidad Precio _ la
+IUNTe
+DÍ REUA SASORIZADA CIELO MANZANA CON GAS K 600 NL
+1.500 1 UnjS 2.49
+AGUA SABORIZADA CIEL 0.
+SS e Aéun SABORIZADA CIELO MARALUYA CON GAS X 600 ML
+: A 1 130%: 1 UniS 2.49
+O AGUA SABORIZADA CIEL 0.
+5 ea 22d E DE PISTACHO CON FRAMBUESA X 150 6R be. »
+A. 1 UniS 6.90 m- a :
+z ES : = 0.00 OP. INAFECTAS OS
+SS 4 1.18 TOTAL. DCTO ES
+a | 1.54 Estándar 18% pS E
+A 10.10 : coa ES
+A edon Pal E
+e re 0.00 e aa ==
+ET > A —— e rd sion 2 e y a > Pa
+iio | EEN 2 ES"
+R36,A,restaurante_fondo_madera,2026-11-23,,0,EL SABOR DE PALE S.A.C.|EL SABOR DE PALE,,0,36.00,,0,0,0.0,4.03,0.354,1.778,0.0022,2.134,"OS y > ta O
+e a ¡
+PES FA E LES
+A Y ' / Y LEE »
+¿An >> >
+2 ATAN) >
+O) SS
+E p : a
+| >ñ e. .): E
+¿AA A eL SABOR DE PALE S.A.C- :
+A O IAE
+: Av ALEREDO MENDIÓLA 2400 = MEPIOS
+; CO PLAZA LIMA NORTE
+. DEPENDENCIA | [MA
+AUC: 20563605036
+MAYER RAPO) piD1 PEDIDOS YA
+SICURSALILS
+INKA (CALI AO)
+L0Am A 10P
+(RÓS WCcErT (SAN GUIA
+10AM A 10P 4
+PLAZA NORII CUNDEPENDENCIA) o
+¡QA A 100
+PLAZA ULA BOLICHE SURCO
+1040 A St
+amar Ra PARQUÍ CANEPA AS ¡CTORLAS
+mm A Bl WN
+ROLETA pE Y ENTA El ECT RKONICA
+TAS:
+; 8005-44259 : :
+£.m1510 mayzozb 15 14145 8
+p.PAGÓ CONTADO a
+us AERIOR
+Cant UND DESCRIPCIÓN P-y- ¡GAL
+1.00 UND 14 BAJADLA PERFECTA 18,00 18.00
+1,00 IND 1 2 BAJADA PEREEA A 18,00 18.00 a
+ar, GRAVADA > z 30,51 e
+or. EXON RADAS S 0.00
+Jay 10% SY 9.19
+moral VENA Ss a 36.06
+son; (RE INTA Y EJ Y 00/ 100 SOLES
+paco CON yiSA . 236.00
+VUELTO 5/ E 0,00
+CAJA! YO LAJA CAJALO TURNO 3
+51 ÓN: MESA MoZÓ
+Representación impresa BOLETA DI VENTA
+ELECI RONICA
+Para consultar Comprobante
+Narsapp +9 1 14800039"
+R37,A,whatsapp_ticket_largo,2026-09-10,,0,TIENDAS POR DEPARTAMENTO RIPLEY S.A.C.|RIPLEY,,0,49.99,49.99,1,0,0.0,-0.81,0.048,0.375,0.001,0.424,"rro —
+Ñ ,
+4
+! VAMENTO RIPI
+| MI
+Í
+AN ISIDF IM
+NF JE UNIDADE 1
+GRAVADAS 12.36
+(18% 7.6;
+TOTAL A PAGAR S/ 49.99
+ON: CUARENTA Y NUEVE Y 99/100 SOLES
+| 9 Ñ
+i APTURA: CONTACTLE r: 42
+| Guarda tt uche
+IS ter ar
+¿MEN
+| ¡RACIAS POF J COMPRA
+1]
+! E JEREMÍ E COMF
+EA LA MEJOR EXPERTEN(
+Í ronu
+| y signos de u
+/ empaque original
+ta LN"
+R38,A,whatsapp_cafeteria,2026-11-06,2026-11-06,1,LASINO S.A|STARBUCKS COFFEE,STARBUCKS COFFEE,1,34.50,34.50,1,1,1.0,0.91,0.062,0.47,0.0011,0.533,"LASINO S.A RUC: 2038882945
+STARBUCKS COFFEE
+AU. JAVIER PRADO DESTE 165(
+LIMA LIMA SAN ISIDRO
+STB014 - MORELI
+BOLETA DE VENTA ELECTRONICA: BS14-01370854
+FECHA DE EMISION: 06/11/2026 16:13:09
+1 FR Mocha 16.50
+1 FR Triple Mocha 18.00
+OP. GRAVADA 28.52
+1.6.4. 5.14
+RECARGO CONSUMO 0.84
+ICBPER 0.00
+IMPORTE TOTAL S/ 34.50
+Starbucks Ca 34.50
+VUELTO 0.00
+Son: Treinta y cuatro con 50/100 Soles
+Autorizado mediante resolucion Nro. 0180050001443/SUNAT
+Representacion inpresa de la Boleta de Venta
+Electronica, Este docunento puede ser validado en
+y |"
