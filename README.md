@@ -2,6 +2,31 @@
 
 Prototipo local en Python con Streamlit, OpenCV, PaddleOCR y SQLite. La herramienta ayuda a registrar **fecha, comercio y total**, pero exige que una persona revise y confirme los valores antes de guardarlos.
 
+## Inicio rápido
+
+1. Instala Python 3.11 o 3.12 y crea un entorno virtual (ver «Instalación y ejecución»).
+2. `pip install -r requirements.txt`
+3. `python create_user.py` (crea el usuario y la contraseña; la contraseña no se muestra al escribirla).
+4. `streamlit run main.py` y abre <http://localhost:8501>.
+5. Inicia sesión, sube la foto de una boleta (JPG, PNG, HEIC o cámara), revisa los tres campos propuestos, corrige lo que haga falta y confirma.
+
+Con Docker: `docker compose build`, `docker compose run --rm app python create_user.py` y `docker compose up -d` (ver «Ejecución con Docker»).
+La primera lectura descarga los modelos de PaddleOCR (unos 13 MB) y tarda más.
+
+**Pruebas:** `pytest -q` (269 pruebas; una requiere los modelos de PaddleOCR y se omite si no están).
+**Experimentos del informe:** `experimentos/README.md`.
+
+### Resultados principales (38 boletas reales anonimizadas)
+
+| Motor | Exactitud global (fecha, comercio y total) | Tiempo medio por boleta (CPU) |
+|---|---|---|
+| **PaddleOCR (el que usa el prototipo)** | **85,1 %** (82,7 % en las 27 boletas de validación independiente) | 11,6 s |
+| RapidOCR | 70,2 % | 1,3 s |
+| Tesseract | 49,1 % | 1,4 s |
+| EasyOCR | 48,2 % | 13,1 s |
+
+En el Experimento 2, con dos participantes, el tiempo de registro por boleta bajó de 39,2 s (manual) a 20,1 s (prototipo), un 48,8 %.
+
 ## Funcionalidades incluidas
 
 - **HU-01:** autenticación local mediante `st.session_state`. La contraseña se crea en una terminal, se oculta al escribirla y se almacena como hash PBKDF2-HMAC-SHA256 con salt aleatorio; no hay credenciales predefinidas en el código.
@@ -122,6 +147,7 @@ docker compose up -d                                 # abre http://localhost:850
  ├── crypto_service.py   # Cifrado en reposo de imágenes y texto OCR (Fernet)
  ├── nl_query.py         # Preguntas en lenguaje natural: reglas + Claude opcional
  ├── ocr_service.py      # OpenCV, PaddleOCR y reglas de extracción A/B
+ ├── image_io.py         # Lectura de JPG, PNG y HEIC/HEIF (conversión a JPG)
  ├── repository.py       # SQLite y persistencia atómica de imágenes
  ├── auth_service.py     # PBKDF2, verificación y lectura de la cuenta
  ├── create_user.py      # Alta de cuenta local interactiva
@@ -139,8 +165,12 @@ docker compose up -d                                 # abre http://localhost:850
  │   ├── test_privacy.py         # Enmascarado de datos personales
  │   ├── test_crypto_service.py  # Cifrado, claves, registros antiguos y clave perdida
  │   ├── test_nl_query.py        # Reglas, ejecución determinista y Claude simulado
+ │   ├── test_paddle_reader.py   # Lector PaddleOCR (con los modelos reales si están disponibles)
+ │   ├── test_extraction_improvements.py  # Fechas, comercio y total en letras
+ │   ├── test_image_io.py        # Conversión de HEIC/HEIF
  │   ├── test_ui.py              # Interfaz Streamlit con AppTest (login, filtros, evidencia, preguntas)
  │   └── test_ui_capture.py      # Flujo completo archivo/cámara → OCR → revisión → guardado
+ ├── experimentos/       # Evaluación del informe: datos, scripts, resultados y Experimento 2 (ver experimentos/README.md)
  ├── .github/workflows/
  │   └── ci.yml          # Pruebas + construcción y arranque de la imagen Docker
  ├── Dockerfile          # Imagen solo-CPU con modelos PaddleOCR precargados
@@ -160,11 +190,13 @@ docker compose up -d                                 # abre http://localhost:850
 3. **Escala de grises:** `cv2.cvtColor(..., cv2.COLOR_BGR2GRAY)`.
 4. **Detección de inclinación:** `cv2.Canny(gray, 50, 150, apertureSize=3)` seguido de `cv2.HoughLinesP(edges, rho=1, theta=pi/180, threshold=50, minLineLength=max(30, 0.15*ancho), maxLineGap=20)`. Solo se consideran líneas con ángulo absoluto de hasta `15°`. Se usa la mediana ponderada por longitud. Las rotaciones estimadas menores que `0.15°` se ignoran.
 5. **Rotación:** se rota por el mismo ángulo medido (en coordenadas de imagen un ángulo positivo es una inclinación horaria y `getRotationMatrix2D` gira en sentido antihorario con ángulos positivos), con `cv2.getRotationMatrix2D` y `cv2.warpAffine` con `cv2.INTER_CUBIC`, lienzo expandido para evitar recortes y fondo blanco (`255`).
-6. **Contraste local:** `cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(gray)`.
-7. **Denoising:** `cv2.bilateralFilter(image, d=5, sigmaColor=35, sigmaSpace=35)`.
+6. **Contraste local (opcional, `enhance=True`):** `cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(gray)`.
+7. **Denoising (opcional, junto con el contraste):** `cv2.bilateralFilter(image, d=5, sigmaColor=35, sigmaSpace=35)`.
+   Un recorte del papel con corrección de perspectiva también es opcional (`crop_document=True`).
+   Por defecto el prototipo usa solo los pasos 1 a 5 (imagen en grises corregida en inclinación): con las boletas del proyecto fue igual o mejor que las variantes con realce o recorte.
 8. **Codificación de salida:** PNG con `cv2.imencode('.png', ..., [cv2.IMWRITE_PNG_COMPRESSION, 3])`; esta copia se entrega a PaddleOCR y se conserva por separado para evidencia.
 
-Los parámetros son punto de partida reproducible; deben compararse con imágenes originales y procesadas del conjunto de ajuste real antes de afirmar que mejoran la exactitud.
+Los parámetros son un punto de partida reproducible. La comparación de las variantes con boletas reales está en `experimentos/` (`comparar_preprocesado.py`) y en el informe.
 
 ## Reglas iniciales para los formatos A y B
 
@@ -189,16 +221,16 @@ pytest -q
 
 Las pruebas se ejecutan sobre una carpeta de datos temporal (nunca tocan `data/`) y cubren:
 
-- **OCR:** preprocesado, corrección de inclinación con imágenes giradas sintéticamente, formatos de monto y fecha, reglas de total/comercio y el pipeline `process_receipt` completo con un lector EasyOCR simulado.
+- **OCR:** preprocesado, corrección de inclinación con imágenes giradas sintéticamente, formatos de monto y fecha, reglas de total/comercio y el pipeline `process_receipt` completo con un lector OCR simulado y una prueba con los modelos reales de PaddleOCR.
 - **Guardado:** validación de la revisión, valores propuestos vs. confirmados, idempotencia sin pérdida de evidencia y limpieza de imágenes si falla la base de datos.
 - **Persistencia y autenticación:** filtros, escapes de `LIKE`, rutas de imágenes, usuarios con tildes/ñ y archivos de cuenta dañados.
 - **Interfaz:** login, cierre de sesión, filtros combinados, rango invertido, evidencia y tolerancia a imágenes faltantes o dañadas, con `streamlit.testing.v1.AppTest`.
 
-- **Captura:** flujo completo con archivo y con cámara (`AppTest` simula ambos) usando un lector OCR simulado: candidatos prellenados, corrección manual, confirmación obligatoria, guardado sin duplicados y archivo original intacto. La verificación de exactitud de EasyOCR debe hacerse con boletas reales del conjunto de ajuste.
+- **Captura:** flujo completo con archivo y con cámara (`AppTest` simula ambos) usando un lector OCR simulado: candidatos prellenados, corrección manual, confirmación obligatoria, guardado sin duplicados y archivo original intacto. La exactitud con boletas reales se mide en `experimentos/`, no en estas pruebas.
 
 ## Experimentos del informe final
 
-La carpeta `experimentos/` contiene los valores de referencia de 38 boletas **reales anonimizadas** (las imágenes de 11 están en el repositorio y las de 27 se entregan aparte), sus valores de referencia, los scripts que comparan PaddleOCR, RapidOCR, EasyOCR y Tesseract con el pipeline real (EasyOCR ya no es dependencia: para reproducir sus rondas, `pip install easyocr`) y los resultados obtenidos. Las instrucciones para reproducirlos están en `experimentos/README.md`.
+La carpeta `experimentos/` contiene los valores de referencia de 38 boletas **reales anonimizadas** (las imágenes de 11 están en el repositorio y las de 27 se entregan aparte en el archivo de datos), los scripts que comparan PaddleOCR, RapidOCR, EasyOCR y Tesseract con el pipeline real (EasyOCR ya no es dependencia: para reproducir sus rondas, `pip install easyocr`), los resultados obtenidos y los datos del Experimento 2 (tiempo de registro con dos participantes). Las instrucciones para reproducirlos están en `experimentos/README.md`.
 
 ## Limitaciones conocidas
 
