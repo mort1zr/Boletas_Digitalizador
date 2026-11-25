@@ -5,3 +5,8 @@ R3,imagenes/R3_tambo.jpg,A,A,inclinada_y_tenue,2026-11-05,TIENDAS TAMBO S.A.C.|T
 R4,imagenes/R4_starbucks.jpg,B,A,arrugada,2026-11-06,LASINO S.A|STARBUCKS COFFEE,14.50,"Boleta electrónica de cafetería; papel arrugado"
 R5,imagenes/R5_mass.jpg,A,A,arrugada_y_reflejo,2026-01-23,COMPANIA HARD DISCOUNT S.A.C.|MASS,166.20,"Boleta electrónica de minimarket; papel arrugado, reflejos y fondo metálico"
 R6,imagenes/R6_tambo_madera.jpg,A,A,fondo_madera_vertical,2026-11-12,TIENDAS TAMBO S.A.C.|TAMBO +|TAMBO,4.00,"Boleta electrónica de tienda de conveniencia; foto vertical sobre mesa de madera, papel angosto con un doblez en la esquina; archivo original HEIC de un Samsung"
+R7,imagenes/R7_openpay.jpg,C,A,voucher_brillo,2026-11-06,MYAGUI RIMAC 2|OPENPAY,50.00,"Voucher Openpay (BBVA) de un terminal POS; foto de iPhone/Samsung en resolución completa, brillo en la parte alta"
+R8,imagenes/R8_plazavea_2.jpg,A,A,fecha_sin_etiqueta,2026-11-06,COMPANIA FOOD RETAIL S.A.C.|PLAZA VEA,26.68,"Boleta electrónica de supermercado; la fecha solo aparece al pie del ticket, sin la palabra Fecha; sombra lateral"
+R9,imagenes/R9_niubiz.jpg,C,A,voucher_rasgado_sin_etiqueta,2026-09-03,AMPHORA CENTRO CIVICO|NIUBIZ,175.20,"Voucher Niubiz con el borde superior rasgado; el importe aparece solo (S/ 175.20), sin la palabra Total"
+R10,imagenes/R10_metro.jpg,A,A,ticket_largo_34_items,2026-11-07,CENCOSUD RETAIL PERU S.A.|METRO,283.30,"Ticket largo de supermercado (34 artículos); no trae fecha de emisión explícita: solo «Saldo al 07/11/26» (fecha de referencia inferida)"
+R11,imagenes/R11_mass_2.jpg,A,A,sombra_sobre_madera,2026-11-13,COMPANIA HARD DISCOUNT S.A.C.|MASS,7.80,"Boleta de minimarket sobre una mesa de madera con sombra marcada; la fecha solo aparece al pie"

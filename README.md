@@ -196,9 +196,9 @@ Las pruebas se ejecutan sobre una carpeta de datos temporal (nunca tocan `data/`
 
 - **Captura:** flujo completo con archivo y con cámara (`AppTest` simula ambos) usando un lector OCR simulado: candidatos prellenados, corrección manual, confirmación obligatoria, guardado sin duplicados y archivo original intacto. La verificación de exactitud de EasyOCR debe hacerse con boletas reales del conjunto de ajuste.
 
-## Experimentos del Avance 2
+## Experimentos del informe final
 
-La carpeta `experimentos/` contiene una muestra de 5 boletas **reales anonimizadas**, sus valores de referencia, los scripts que comparan EasyOCR, Tesseract, RapidOCR y PaddleOCR con el pipeline real (EasyOCR ya no es dependencia: para reproducir sus rondas, `pip install easyocr`) y los resultados obtenidos. Las instrucciones para reproducirlos están en `experimentos/README.md`.
+La carpeta `experimentos/` contiene los valores de referencia de 38 boletas **reales anonimizadas** (las imágenes de 11 están en el repositorio y las de 27 se entregan aparte), sus valores de referencia, los scripts que comparan PaddleOCR, RapidOCR, EasyOCR y Tesseract con el pipeline real (EasyOCR ya no es dependencia: para reproducir sus rondas, `pip install easyocr`) y los resultados obtenidos. Las instrucciones para reproducirlos están en `experimentos/README.md`.
 
 ## Limitaciones conocidas
 

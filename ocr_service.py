@@ -380,6 +380,11 @@ def run_ocr(processed_image: np.ndarray) -> tuple[list[OCRLine], str]:
     return lines, raw_text
 
 
+# Los comprobantes electrónicos peruanos existen desde 2015; una fecha anterior o más de un año en el
+# futuro es casi siempre una lectura errónea («2613» por «2026») o un importe leído como fecha.
+MIN_RECEIPT_YEAR = 2015
+
+
 def _parse_date_match(match: re.Match[str]) -> str | None:
     first, second, third = match.group(1), match.group(2), match.group(3)
     try:
@@ -389,6 +394,8 @@ def _parse_date_match(match: re.Match[str]) -> str | None:
             day, month, year = int(first), int(second), int(third)
             if year < 100:
                 year += 2000 if year <= 69 else 1900
+        if not MIN_RECEIPT_YEAR <= year <= date.today().year + 1:
+            return None
         return date(year, month, day).isoformat()
     except (ValueError, OverflowError):
         return None
@@ -659,8 +666,10 @@ _CENTENAS = {
     "CIEN": 100, "CIENTO": 100, "DOSCIENTOS": 200, "TRESCIENTOS": 300, "CUATROCIENTOS": 400, "QUINIENTOS": 500,
     "SEISCIENTOS": 600, "SETECIENTOS": 700, "OCHOCIENTOS": 800, "NOVECIENTOS": 900,
 }
-# «SON: CUATRO Y 00/100 SOLES», «Son: Ciento veinte con 50/100 soles».
-_SON_RE = re.compile(r"\bSON\b\s*:?\s*(?P<letras>[A-Z\s]+?)\s*(?:Y|CON)?\s*(?P<cent>\d{1,2})\s*/\s*100\b")
+# «SON: CUATRO Y 00/100 SOLES», «Son: Ciento veinte con 50/100 soles» o, sin la palabra SON,
+# «VEINTISEIS Y 68/100 SOLES» (formato de las boletas de supermercado).
+_CENTS_RE = re.compile(r"(?P<cent>\d{1,2})\s*/\s*100\b")
+_SON_RE = _CENTS_RE  # compatibilidad: la línea con «NN/100» no cuenta como importe impreso
 
 
 def _words_to_int(words: Sequence[str]) -> int | None:
@@ -687,10 +696,22 @@ def _words_to_int(words: Sequence[str]) -> int | None:
 def amount_in_words(text: str) -> int | None:
     """Importe en céntimos escrito en letras al pie de la boleta («SON: CUATRO Y 00/100 SOLES»)."""
     normal = _normalise_text(text)
-    match = _SON_RE.search(normal)
+    match = _CENTS_RE.search(normal)
     if not match:
         return None
-    units = _words_to_int(match.group("letras").split())
+    # Palabras numéricas contiguas justo antes de «NN/100» (se detiene en «SON» o en cualquier otra palabra).
+    words: list[str] = []
+    for token in reversed(normal[:match.start()].replace(":", " ").split()):
+        if token in _UNIDADES or token in _DECENAS or token in _CENTENAS or token in ("MIL", "Y", "CON"):
+            words.append(token)
+        else:
+            break
+    words.reverse()
+    while words and words[0] in ("Y", "CON"):
+        words.pop(0)
+    while words and words[-1] in ("Y", "CON"):
+        words.pop()
+    units = _words_to_int(words)
     if units is None:
         return None
     return units * 100 + int(match.group("cent").ljust(2, "0")[:2])

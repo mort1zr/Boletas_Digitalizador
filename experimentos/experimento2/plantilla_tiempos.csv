@@ -1,0 +1,11 @@
+participante,boleta,metodo,orden,tiempo_segundos,errores_en_datos_finales,observaciones
+P1,R2,manual,1,,,
+P1,R4,manual,2,,,
+P1,R5,manual,3,,,
+P1,R7,manual,4,,,
+P1,R8,manual,5,,,
+P1,R9,prototipo,6,,,
+P1,R10,prototipo,7,,,
+P1,R11,prototipo,8,,,
+P1,R6,prototipo,9,,,
+P1,R3,prototipo,10,,,
