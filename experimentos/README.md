@@ -12,7 +12,7 @@ Evaluación reproducible del prototipo con **38 boletas reales anonimizadas** (c
 | `evaluar_ocr.py` | Experimentos 1 y 3: ejecuta el pipeline real con EasyOCR (opcional), Tesseract, RapidOCR y PaddleOCR y mide exactitud y tiempos. |
 | `comparar_preprocesado.py` | Experimento 4: compara cuatro formas de preparar la imagen. |
 | `metricas_complementarias.py` | Intervalos de confianza de Wilson (95 %). |
-| `experimento2/` | Protocolo, plantilla y script del Experimento 2 (tiempo de registro con usuarios); **no se ejecutó**. |
+| `experimento2/` | Experimento 2 (tiempo de registro manual frente al prototipo con dos participantes): protocolo, datos medidos (`datos_experimento2.csv`), libro de registro, script de análisis y gráfico. |
 | `resultados/final/` | Resultados de los cuatro motores con R1 a R11 (detalle por boleta, `resumen.json`, `resumen.md`). |
 | `resultados/validacion_independiente/` | Resultados de los cuatro motores con R12 a R38, medidas sin ajustar ninguna regla. |
 | `resultados/final_previo/` | Mismos motores antes de la última corrección de las reglas de fecha y de importe en letras. |

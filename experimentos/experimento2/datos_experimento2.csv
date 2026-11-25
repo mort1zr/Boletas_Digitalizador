@@ -1,0 +1,21 @@
+participante,boleta,metodo,orden,tiempo_segundos,errores_en_datos_finales,observaciones
+P1,R2,manual,1,54.15,0,
+P1,R5,manual,2,36.74,0,
+P1,R12,manual,3,37.21,0,
+P1,R19,manual,4,36.23,0,
+P1,R27,manual,5,33.13,0,
+P1,R4,prototipo,6,15.7,0,No cometio errores
+P1,R7,prototipo,7,14.78,0,No cometio errores
+P1,R15,prototipo,8,20.11,0,No cometio errores
+P1,R22,prototipo,9,24.32,0,No cometio errores
+P1,R30,prototipo,10,22.3,1,Puso 78 en total a pagar en lugar de 79 como precio original
+P2,R2,prototipo,1,17.03,0,No cometio errores
+P2,R5,prototipo,2,20.11,0,No cometio errores
+P2,R12,prototipo,3,23.01,1,"Se confundio con el sticker, registro el texto de este en lugar del comercio"
+P2,R19,prototipo,4,20.78,0,No cometio errores
+P2,R27,prototipo,5,22.85,0,No cometio errores
+P2,R4,manual,6,34.36,0,
+P2,R10,manual,7,46.31,0,
+P2,R15,manual,8,33.17,0,
+P2,R22,manual,9,40.9,0,
+P2,R30,manual,10,40.02,0,
